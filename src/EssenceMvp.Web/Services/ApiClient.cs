@@ -24,59 +24,18 @@ public sealed class ApiClient
         return await response.Content.ReadFromJsonAsync<AuthResponse>();
     }
 
-    public sealed record LoginDebugResult(
-        AuthResponse? Auth,
-        bool IsSuccess,
-        int StatusCode,
-        string? RawBody,
-        string? ErrorMessage,
-        string RequestPath);
-
     public async Task<AuthResponse?> LoginAsync(LoginRequest request)
     {
-        var result = await LoginWithDebugAsync(request);
-        return result.Auth;
-    }
+        var response = await _http.PostAsJsonAsync("auth/login", request);
+        var body = await response.Content.ReadAsStringAsync();
 
-    public async Task<LoginDebugResult> LoginWithDebugAsync(LoginRequest request)
-    {
-        const string requestPath = "/auth/login";
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            return null;
 
-        try
-        {
-            var response = await _http.PostAsJsonAsync(requestPath, request);
-            var body = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"HTTP {(int)response.StatusCode}: {body}");
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return new LoginDebugResult(
-                    Auth: null,
-                    IsSuccess: false,
-                    StatusCode: (int)response.StatusCode,
-                    RawBody: body,
-                    ErrorMessage: $"Login failed with status {(int)response.StatusCode}",
-                    RequestPath: requestPath);
-            }
-
-            var auth = await response.Content.ReadFromJsonAsync<AuthResponse>();
-            return new LoginDebugResult(
-                Auth: auth,
-                IsSuccess: auth is not null,
-                StatusCode: (int)response.StatusCode,
-                RawBody: body,
-                ErrorMessage: auth is null ? "Login response body could not be deserialized" : null,
-                RequestPath: requestPath);
-        }
-        catch (Exception ex)
-        {
-            return new LoginDebugResult(
-                Auth: null,
-                IsSuccess: false,
-                StatusCode: 0,
-                RawBody: null,
-                ErrorMessage: ex.Message,
-                RequestPath: requestPath);
-        }
+        return await response.Content.ReadFromJsonAsync<AuthResponse>();
     }
 
     public async Task<List<ProjectDto>> GetMyProjectsAsync()

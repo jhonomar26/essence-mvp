@@ -1,48 +1,55 @@
 @page "/projects"
 @rendermode InteractiveServer
-@using EssenceMvp.Web.Services
-@inject ApiClient Api
-@inject AuthState Auth
 
 <PageTitle>Mis proyectos — Essence</PageTitle>
 
-<h2 class="mb-4">Mis proyectos</h2>
-
 @if (!Auth.IsAuthenticated)
 {
-    <div class="alert alert-warning">
-        Debes <NavLink href="/login">iniciar sesión</NavLink> para ver tus proyectos.
-    </div>
+    <MudAlert Severity="Severity.Warning">
+        Debes <MudLink Href="/login">iniciar sesión</MudLink> para ver tus proyectos.
+    </MudAlert>
 }
 else if (_projects is null)
 {
-    <div class="d-flex align-items-center gap-2 text-muted">
-        <div class="spinner-border spinner-border-sm" role="status"></div>
-        <span>Cargando proyectos...</span>
-    </div>
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+    <MudText Color="Color.Secondary">Cargando proyectos...</MudText>
 }
 else if (_projects.Count == 0)
 {
-    <div class="alert alert-info">No tienes proyectos todavía.</div>
+    <MudAlert Severity="Severity.Info">No tienes proyectos todavía.</MudAlert>
 }
 else
 {
-    <div class="row g-3">
+    <MudText Typo="Typo.h5" Class="mb-4">Mis proyectos</MudText>
+    <MudGrid>
         @foreach (var project in _projects)
         {
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">@project.Name</h5>
-                        <span class="badge bg-secondary">@project.Phase</span>
-                    </div>
-                </div>
-            </div>
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@project.Name</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    @if (!string.IsNullOrWhiteSpace(project.Description))
+                    {
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@project.Description</MudText>
+                        </MudCardContent>
+                    }
+                    <MudCardActions>
+                        <MudText Typo="Typo.caption" Color="Color.Primary">@(project.Phase ?? "Sin fase")</MudText>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
         }
-    </div>
+    </MudGrid>
 }
 
 @code {
+    [Inject] ApiClient Api { get; set; } = default!;
+    [Inject] AuthState Auth { get; set; } = default!;
+
     private List<ProjectDto>? _projects;
 
     protected override async Task OnInitializedAsync()

@@ -2,13 +2,17 @@
 
 <PageTitle>Essence MVP</PageTitle>
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6 text-center">
-        <h1 class="display-5 fw-bold mb-3">Essence</h1>
-        <p class="lead text-muted mb-4">Gestión de proyectos simple y eficiente.</p>
-        <div class="d-flex gap-3 justify-content-center">
-            <NavLink class="btn btn-primary btn-lg" href="/register">Crear cuenta</NavLink>
-            <NavLink class="btn btn-outline-secondary btn-lg" href="/login">Iniciar sesión</NavLink>
-        </div>
-    </div>
-</div>
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16 text-center">
+    <MudText Typo="Typo.h3" GutterBottom="true">Essence</MudText>
+    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-8">
+        Gestión de proyectos simple y eficiente.
+    </MudText>
+    <MudStack Row="true" Justify="Justify.Center" Spacing="3">
+        <MudButton Href="/register" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">
+            Crear cuenta
+        </MudButton>
+        <MudButton Href="/login" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large">
+            Iniciar sesión
+        </MudButton>
+    </MudStack>
+</MudContainer>

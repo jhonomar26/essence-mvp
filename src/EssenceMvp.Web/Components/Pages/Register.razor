@@ -1,100 +1,92 @@
 @page "/register"
 @rendermode InteractiveServer
-@using System.ComponentModel.DataAnnotations
-@using EssenceMvp.Web.Services
-@inject ApiClient Api
-@inject AuthState Auth
-@inject NavigationManager Nav
 
 <PageTitle>Crear cuenta — Essence</PageTitle>
 
-<div class="row justify-content-center mt-3">
-    <div class="col-sm-8 col-md-6 col-lg-5">
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h4 class="card-title mb-4 text-center">Crear cuenta</h4>
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Elevation="3" Class="pa-8">
+        <MudText Typo="Typo.h5" Align="Align.Center" GutterBottom="true">Crear cuenta</MudText>
 
-                <EditForm Model="@form" OnValidSubmit="DoRegister" FormName="register">
-                    <DataAnnotationsValidator />
+        <MudTextField @bind-Value="_displayName" Label="Nombre (opcional)" Variant="Variant.Outlined"
+                      Class="mb-4" FullWidth="true" />
 
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <InputText @bind-Value="form.DisplayName" class="form-control" placeholder="Tu nombre" autocomplete="name" />
-                        <ValidationMessage For="() => form.DisplayName" class="text-danger small" />
-                    </div>
+        <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                      InputType="InputType.Email" Class="mb-4" FullWidth="true" />
 
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <InputText @bind-Value="form.Email" class="form-control" placeholder="correo@ejemplo.com" autocomplete="email" />
-                        <ValidationMessage For="() => form.Email" class="text-danger small" />
-                    </div>
+        <MudTextField @bind-Value="_password" Label="Contraseña (mín. 6 caracteres)" Variant="Variant.Outlined"
+                      InputType="InputType.Password" Class="mb-4" FullWidth="true" />
 
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <InputText @bind-Value="form.Password" class="form-control" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
-                        <ValidationMessage For="() => form.Password" class="text-danger small" />
-                    </div>
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <MudAlert Severity="@(_isError ? Severity.Error : Severity.Success)" Class="mb-4" Dense="true">
+                @_message
+            </MudAlert>
+        }
 
-                    <button type="submit" class="btn btn-primary w-100" disabled="@loading">
-                        @(loading ? "Creando cuenta..." : "Crear cuenta")
-                    </button>
-                </EditForm>
+        <MudButton OnClick="DoRegister" Variant="Variant.Filled" Color="Color.Primary"
+                   FullWidth="true" Disabled="@_loading" Size="Size.Large">
+            @(_loading ? "Creando cuenta..." : "Crear cuenta")
+        </MudButton>
 
-                @if (!string.IsNullOrWhiteSpace(message))
-                {
-                    <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3 mb-0 py-2 small">@message</div>
-                }
-
-                <p class="text-center mt-3 mb-0 small text-muted">
-                    ¿Ya tienes cuenta? <NavLink href="/login">Inicia sesión</NavLink>
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+        <MudText Align="Align.Center" Class="mt-4" Typo="Typo.body2">
+            ¿Ya tienes cuenta? <MudLink Href="/login">Inicia sesión</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
 
 @code {
-    private RegisterFormModel form = new();
-    private string? message;
-    private bool isError;
-    private bool loading;
+    [Inject] ApiClient Api { get; set; } = default!;
+    [Inject] AuthState Auth { get; set; } = default!;
+    [Inject] StorageService Storage { get; set; } = default!;
+    [Inject] NavigationManager Nav { get; set; } = default!;
+
+    private string _displayName = "";
+    private string _email = "";
+    private string _password = "";
+    private string? _message;
+    private bool _isError;
+    private bool _loading;
 
     private async Task DoRegister()
     {
-        loading = true;
-        isError = false;
-        message = null;
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _isError = true;
+            _message = "Email y contraseña son obligatorios.";
+            return;
+        }
+        if (_password.Length < 6)
+        {
+            _isError = true;
+            _message = "La contraseña debe tener al menos 6 caracteres.";
+            return;
+        }
+
+        _loading = true;
+        _isError = false;
+        _message = null;
 
         try
         {
             var result = await Api.RegisterAsync(
-                new RegisterRequest(form.DisplayName!, form.Email!, form.Password!)
+                new RegisterRequest(_email.Trim(), _password,
+                    string.IsNullOrWhiteSpace(_displayName) ? null : _displayName.Trim())
             );
+            if (result is null) throw new Exception("El servidor no devolvió sesión.");
+            await Storage.SetAsync("essence_session",
+                System.Text.Json.JsonSerializer.Serialize(result));
             Auth.SetSession(result);
             Nav.NavigateTo("/projects");
         }
         catch (Exception ex)
         {
-            isError = true;
-            message = $"Error al registrar: {ex.Message}";
+            _isError = true;
+            _message = ex.Message;
+            await Storage.DevErrorAsync($"[Register] {ex.Message}");
         }
         finally
         {
-            loading = false;
+            _loading = false;
         }
-    }
-
-    private sealed class RegisterFormModel
-    {
-        [Required(ErrorMessage = "El nombre es requerido")]
-        public string? DisplayName { get; set; }
-
-        [Required(ErrorMessage = "El email es requerido")]
-        [EmailAddress(ErrorMessage = "Email inválido")]
-        public string? Email { get; set; }
-
-        [Required(ErrorMessage = "La contraseña es requerida")]
-        [MinLength(6, ErrorMessage = "Mínimo 6 caracteres")]
-        public string? Password { get; set; }
     }
 }

@@ -1,94 +1,95 @@
 @page "/login"
 @rendermode InteractiveServer
-@inject EssenceMvp.Web.Services.ApiClient Api
-@inject EssenceMvp.Web.Services.AuthState Auth
-@inject NavigationManager Nav
 
 <PageTitle>Iniciar sesión — Essence</PageTitle>
 
-<div class="row justify-content-center mt-3">
-    <div class="col-sm-8 col-md-6 col-lg-5">
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h4 class="card-title mb-4 text-center">Iniciar sesión</h4>
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Elevation="3" Class="pa-8">
+        <MudText Typo="Typo.h5" Align="Align.Center" GutterBottom="true">Iniciar sesión</MudText>
 
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input @bind="email" class="form-control" placeholder="correo@ejemplo.com" type="email" autocomplete="email" />
-                </div>
+        <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                      InputType="InputType.Email" Class="mb-4" FullWidth="true" />
 
-                <div class="mb-3">
-                    <label class="form-label">Contraseña</label>
-                    <input @bind="password" class="form-control" placeholder="Tu contraseña" type="password" autocomplete="current-password" />
-                </div>
+        <MudTextField @bind-Value="_password" Label="Contraseña" Variant="Variant.Outlined"
+                      InputType="@_pwdType" Class="mb-4" FullWidth="true"
+                      Adornment="Adornment.End" AdornmentIcon="@_pwdIcon"
+                      OnAdornmentClick="TogglePwd" />
 
-                <button @onclick="DoLogin" class="btn btn-primary w-100" disabled="@loading">
-                    @(loading ? "Entrando..." : "Entrar")
-                </button>
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <MudAlert Severity="@(_isError ? Severity.Error : Severity.Success)" Class="mb-4" Dense="true">
+                @_message
+            </MudAlert>
+        }
 
-                @if (!string.IsNullOrWhiteSpace(message))
-                {
-                    <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3 mb-0 py-2 small">@message</div>
-                }
+        <MudButton OnClick="DoLogin" Variant="Variant.Filled" Color="Color.Primary"
+                   FullWidth="true" Disabled="@_loading" Size="Size.Large">
+            @(_loading ? "Entrando..." : "Entrar")
+        </MudButton>
 
-                <p class="text-center mt-3 mb-0 small text-muted">
-                    ¿No tienes cuenta? <NavLink href="/register">Regístrate</NavLink>
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+        <MudText Align="Align.Center" Class="mt-4" Typo="Typo.body2">
+            ¿No tienes cuenta? <MudLink Href="/register">Regístrate</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
 
 @code {
-    private string email = "";
-    private string password = "";
-    private string? message;
-    private bool isError;
-    private bool loading;
+    [Inject] ApiClient Api { get; set; } = default!;
+    [Inject] AuthState Auth { get; set; } = default!;
+    [Inject] StorageService Storage { get; set; } = default!;
+    [Inject] NavigationManager Nav { get; set; } = default!;
+
+    private string _email = "";
+    private string _password = "";
+    private string? _message;
+    private bool _isError;
+    private bool _loading;
+    private InputType _pwdType = InputType.Password;
+    private string _pwdIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void TogglePwd()
+    {
+        if (_pwdType == InputType.Password)
+        {
+            _pwdType = InputType.Text;
+            _pwdIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            _pwdType = InputType.Password;
+            _pwdIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
 
     private async Task DoLogin()
     {
-        loading = true;
-        isError = false;
-        message = null;
-
-        Console.WriteLine($"[LOGIN_REQUEST] email={email}; endpoint=/auth/login");
+        _loading = true;
+        _isError = false;
+        _message = null;
 
         try
         {
-            var debug = await Api.LoginWithDebugAsync(new(email, password));
-
-            Console.WriteLine($"[LOGIN_RESPONSE] endpoint={debug.RequestPath}; status={debug.StatusCode}; success={debug.IsSuccess}");
-            Console.WriteLine($"[LOGIN_BODY] {debug.RawBody}");
-
-            if (!debug.IsSuccess || debug.Auth is null)
+            var result = await Api.LoginAsync(new(_email, _password));
+            if (result is null)
             {
-                isError = true;
-                message = debug.StatusCode switch
-                {
-                    400 => "Solicitud invalida. Revisa email y contrasena.",
-                    401 => "Email o contrasena incorrectos",
-                    0 => $"Error de red o excepcion: {debug.ErrorMessage}",
-                    _ => $"Error de login ({debug.StatusCode}): {debug.ErrorMessage ?? "Sin detalle"}"
-                };
-
-                Console.WriteLine($"[LOGIN_ERROR] {message}");
+                _isError = true;
+                _message = "Email o contraseña incorrectos";
                 return;
             }
-
-            Auth.SetSession(debug.Auth);
-            Console.WriteLine("[LOGIN_RESULT] success=true; navegando a /projects");
+            await Storage.SetAsync("essence_session",
+                System.Text.Json.JsonSerializer.Serialize(result));
+            Auth.SetSession(result);
             Nav.NavigateTo("/projects");
         }
         catch (Exception ex)
         {
-            isError = true;
-            message = $"Error: {ex.Message}";
-            Console.WriteLine($"[LOGIN_EXCEPTION] {ex}");
+            _isError = true;
+            _message = ex.Message;
+            await Storage.DevErrorAsync($"[Login] {ex.Message}");
         }
         finally
         {
-            loading = false;
+            _loading = false;
         }
     }
 }

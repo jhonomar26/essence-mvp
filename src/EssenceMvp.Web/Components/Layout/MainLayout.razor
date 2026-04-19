@@ -1,30 +1,48 @@
 @inherits LayoutComponentBase
-@using EssenceMvp.Web.Services
+@implements IDisposable
 @inject AuthState Auth
+@inject StorageService Storage
+@inject NavigationManager Nav
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <NavLink class="navbar-brand fw-semibold" href="/">Essence</NavLink>
-        <div class="navbar-nav ms-auto d-flex flex-row gap-2 align-items-center">
-            @if (Auth.IsAuthenticated)
-            {
-                <NavLink class="nav-link" href="/projects">Proyectos</NavLink>
-                <span class="navbar-text text-light small">@Auth.Email</span>
-            }
-            else
-            {
-                <NavLink class="nav-link" href="/login">Entrar</NavLink>
-                <NavLink class="btn btn-outline-light btn-sm" href="/register">Registrarse</NavLink>
-            }
-        </div>
-    </div>
-</nav>
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-<div class="container py-4">
-    @Body
-</div>
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Dark">
+        <MudText Typo="Typo.h6" Class="ml-2">Essence</MudText>
+        <MudSpacer />
+        @if (Auth.IsAuthenticated)
+        {
+            <MudText Typo="Typo.body2" Class="mr-3 mud-text-secondary d-none d-sm-block">@Auth.Email</MudText>
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="Logout">Salir</MudButton>
+        }
+        else
+        {
+            <MudButton Href="/login" Variant="Variant.Text" Color="Color.Inherit">Entrar</MudButton>
+            <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Inherit" Class="ml-2">Registrarse</MudButton>
+        }
+    </MudAppBar>
 
-<div id="blazor-error-ui">
-    Error inesperado. <a href="" class="reload">Recargar</a>
-    <a class="dismiss">&#10006;</a>
-</div>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    protected override void OnInitialized() =>
+        Auth.OnChange += StateHasChanged;
+
+    public void Dispose() =>
+        Auth.OnChange -= StateHasChanged;
+
+    private async Task Logout()
+    {
+        Auth.Clear();
+        await Storage.RemoveAsync("essence_session");
+        Nav.NavigateTo("/login");
+    }
+}
