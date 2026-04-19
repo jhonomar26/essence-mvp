@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(docker compose up:*)",
+      "Bash(cmd /c \"start \\\\\"\\\\\" \\\\\"C:\\\\\\\\Program Files\\\\\\\\Docker\\\\\\\\Docker\\\\\\\\Docker Desktop.exe\\\\\"\")",
+      "Bash(docker info:*)",
+      "Bash(break)"
+    ]
+  }
+}
