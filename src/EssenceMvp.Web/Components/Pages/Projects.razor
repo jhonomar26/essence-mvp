@@ -1,0 +1,53 @@
+@page "/projects"
+@rendermode InteractiveServer
+@using EssenceMvp.Web.Services
+@inject ApiClient Api
+@inject AuthState Auth
+
+<PageTitle>Mis proyectos — Essence</PageTitle>
+
+<h2 class="mb-4">Mis proyectos</h2>
+
+@if (!Auth.IsAuthenticated)
+{
+    <div class="alert alert-warning">
+        Debes <NavLink href="/login">iniciar sesión</NavLink> para ver tus proyectos.
+    </div>
+}
+else if (_projects is null)
+{
+    <div class="d-flex align-items-center gap-2 text-muted">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        <span>Cargando proyectos...</span>
+    </div>
+}
+else if (_projects.Count == 0)
+{
+    <div class="alert alert-info">No tienes proyectos todavía.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var project in _projects)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@project.Name</h5>
+                        <span class="badge bg-secondary">@project.Phase</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ProjectDto>? _projects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Auth.IsAuthenticated)
+            _projects = await Api.GetMyProjectsAsync();
+    }
+}

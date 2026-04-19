@@ -1,0 +1,100 @@
+@page "/register"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using EssenceMvp.Web.Services
+@inject ApiClient Api
+@inject AuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Crear cuenta — Essence</PageTitle>
+
+<div class="row justify-content-center mt-3">
+    <div class="col-sm-8 col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4 text-center">Crear cuenta</h4>
+
+                <EditForm Model="@form" OnValidSubmit="DoRegister" FormName="register">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <InputText @bind-Value="form.DisplayName" class="form-control" placeholder="Tu nombre" autocomplete="name" />
+                        <ValidationMessage For="() => form.DisplayName" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <InputText @bind-Value="form.Email" class="form-control" placeholder="correo@ejemplo.com" autocomplete="email" />
+                        <ValidationMessage For="() => form.Email" class="text-danger small" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <InputText @bind-Value="form.Password" class="form-control" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+                        <ValidationMessage For="() => form.Password" class="text-danger small" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" disabled="@loading">
+                        @(loading ? "Creando cuenta..." : "Crear cuenta")
+                    </button>
+                </EditForm>
+
+                @if (!string.IsNullOrWhiteSpace(message))
+                {
+                    <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3 mb-0 py-2 small">@message</div>
+                }
+
+                <p class="text-center mt-3 mb-0 small text-muted">
+                    ¿Ya tienes cuenta? <NavLink href="/login">Inicia sesión</NavLink>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterFormModel form = new();
+    private string? message;
+    private bool isError;
+    private bool loading;
+
+    private async Task DoRegister()
+    {
+        loading = true;
+        isError = false;
+        message = null;
+
+        try
+        {
+            var result = await Api.RegisterAsync(
+                new RegisterRequest(form.DisplayName!, form.Email!, form.Password!)
+            );
+            Auth.SetSession(result);
+            Nav.NavigateTo("/projects");
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            message = $"Error al registrar: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private sealed class RegisterFormModel
+    {
+        [Required(ErrorMessage = "El nombre es requerido")]
+        public string? DisplayName { get; set; }
+
+        [Required(ErrorMessage = "El email es requerido")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es requerida")]
+        [MinLength(6, ErrorMessage = "Mínimo 6 caracteres")]
+        public string? Password { get; set; }
+    }
+}

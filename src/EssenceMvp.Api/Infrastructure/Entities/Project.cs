@@ -3,6 +3,8 @@ namespace EssenceMvp.Api.Infrastructure.Entities;
 public class Project
 {
     public int Id { get; set; }
+    public int UserId { get; set; }
+
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public string? Phase { get; set; }

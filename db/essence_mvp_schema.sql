@@ -35,17 +35,33 @@ CREATE TABLE state_checklist
 );
 
 -- ─────────────────────────────────────────────
+--  AUTENTICACIÓN
+-- ─────────────────────────────────────────────
+
+CREATE TABLE app_user
+(
+    id            SERIAL PRIMARY KEY,
+    email         VARCHAR(200) NOT NULL UNIQUE,
+    password_hash TEXT         NOT NULL,
+    display_name  VARCHAR(100),
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- ─────────────────────────────────────────────
 --  PROYECTOS
 -- ─────────────────────────────────────────────
 
 CREATE TABLE project
 (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(200) NOT NULL,
-    description TEXT,
-    phase       VARCHAR(100),
-    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    id           SERIAL PRIMARY KEY,
+    user_id      INT           NOT NULL REFERENCES app_user (id) ON DELETE CASCADE,
+    name         VARCHAR(200)  NOT NULL,
+    description  TEXT,
+    phase        VARCHAR(100),
+    created_at   TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX ix_project_user_id ON project (user_id);
 
 -- Estado actual de cada Alpha dentro de un proyecto.
 -- current_state_number = último estado completamente alcanzado (0 = ninguno aún).

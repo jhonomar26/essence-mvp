@@ -1,10 +1,18 @@
 using EssenceMvp.Web.Components;
+using EssenceMvp.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddScoped<AuthState>();
+builder.Services.AddScoped<ApiClient>();
+builder.Services.AddHttpClient<ApiClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:5062");
+});
 
 var app = builder.Build();
 

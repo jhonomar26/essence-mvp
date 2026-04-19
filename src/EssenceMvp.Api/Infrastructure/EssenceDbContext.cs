@@ -14,6 +14,7 @@ public class EssenceDbContext : DbContext
     public DbSet<ProjectAlphaStatus> ProjectAlphaStatuses { get; set; }
     public DbSet<ChecklistResponse> ChecklistResponses { get; set; }
     public DbSet<HealthReport> HealthReports { get; set; }
+    public DbSet<AppUser> AppUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,14 +50,30 @@ public class EssenceDbContext : DbContext
             e.HasOne(c => c.AlphaState).WithMany(s => s.Checklists).HasForeignKey(c => c.AlphaStateId);
         });
 
+        modelBuilder.Entity<AppUser>(e =>
+        {
+            e.ToTable("app_user");
+            e.HasIndex(u => u.Email).IsUnique();
+            e.Property(u => u.Id).HasColumnName("id");
+            e.Property(u => u.Email).HasColumnName("email");
+            e.Property(u => u.PasswordHash).HasColumnName("password_hash");
+            e.Property(u => u.DisplayName).HasColumnName("display_name");
+            e.Property(u => u.CreatedAt).HasColumnName("created_at");
+        });
+
         modelBuilder.Entity<Project>(e =>
         {
             e.ToTable("project");
             e.Property(p => p.Id).HasColumnName("id");
-            e.Property(p => p.Name).HasColumnName("name");
+            e.Property(p => p.UserId).HasColumnName("user_id");
+            e.Property(p => p.Name).HasColumnName("name").HasMaxLength(200);
             e.Property(p => p.Description).HasColumnName("description");
-            e.Property(p => p.Phase).HasColumnName("phase");
+            e.Property(p => p.Phase).HasColumnName("phase").HasMaxLength(100);
             e.Property(p => p.CreatedAt).HasColumnName("created_at");
+            e.HasOne<AppUser>()
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ProjectAlphaStatus>(e =>

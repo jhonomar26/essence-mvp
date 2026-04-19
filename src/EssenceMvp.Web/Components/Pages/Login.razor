@@ -1,0 +1,94 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject EssenceMvp.Web.Services.ApiClient Api
+@inject EssenceMvp.Web.Services.AuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Iniciar sesión — Essence</PageTitle>
+
+<div class="row justify-content-center mt-3">
+    <div class="col-sm-8 col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4 text-center">Iniciar sesión</h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input @bind="email" class="form-control" placeholder="correo@ejemplo.com" type="email" autocomplete="email" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input @bind="password" class="form-control" placeholder="Tu contraseña" type="password" autocomplete="current-password" />
+                </div>
+
+                <button @onclick="DoLogin" class="btn btn-primary w-100" disabled="@loading">
+                    @(loading ? "Entrando..." : "Entrar")
+                </button>
+
+                @if (!string.IsNullOrWhiteSpace(message))
+                {
+                    <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3 mb-0 py-2 small">@message</div>
+                }
+
+                <p class="text-center mt-3 mb-0 small text-muted">
+                    ¿No tienes cuenta? <NavLink href="/register">Regístrate</NavLink>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string? message;
+    private bool isError;
+    private bool loading;
+
+    private async Task DoLogin()
+    {
+        loading = true;
+        isError = false;
+        message = null;
+
+        Console.WriteLine($"[LOGIN_REQUEST] email={email}; endpoint=/auth/login");
+
+        try
+        {
+            var debug = await Api.LoginWithDebugAsync(new(email, password));
+
+            Console.WriteLine($"[LOGIN_RESPONSE] endpoint={debug.RequestPath}; status={debug.StatusCode}; success={debug.IsSuccess}");
+            Console.WriteLine($"[LOGIN_BODY] {debug.RawBody}");
+
+            if (!debug.IsSuccess || debug.Auth is null)
+            {
+                isError = true;
+                message = debug.StatusCode switch
+                {
+                    400 => "Solicitud invalida. Revisa email y contrasena.",
+                    401 => "Email o contrasena incorrectos",
+                    0 => $"Error de red o excepcion: {debug.ErrorMessage}",
+                    _ => $"Error de login ({debug.StatusCode}): {debug.ErrorMessage ?? "Sin detalle"}"
+                };
+
+                Console.WriteLine($"[LOGIN_ERROR] {message}");
+                return;
+            }
+
+            Auth.SetSession(debug.Auth);
+            Console.WriteLine("[LOGIN_RESULT] success=true; navegando a /projects");
+            Nav.NavigateTo("/projects");
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            message = $"Error: {ex.Message}";
+            Console.WriteLine($"[LOGIN_EXCEPTION] {ex}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

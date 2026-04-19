@@ -1,9 +1,30 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using EssenceMvp.Web.Services
+@inject AuthState Auth
 
-@Body
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <NavLink class="navbar-brand fw-semibold" href="/">Essence</NavLink>
+        <div class="navbar-nav ms-auto d-flex flex-row gap-2 align-items-center">
+            @if (Auth.IsAuthenticated)
+            {
+                <NavLink class="nav-link" href="/projects">Proyectos</NavLink>
+                <span class="navbar-text text-light small">@Auth.Email</span>
+            }
+            else
+            {
+                <NavLink class="nav-link" href="/login">Entrar</NavLink>
+                <NavLink class="btn btn-outline-light btn-sm" href="/register">Registrarse</NavLink>
+            }
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    @Body
+</div>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    Error inesperado. <a href="" class="reload">Recargar</a>
+    <a class="dismiss">&#10006;</a>
 </div>
