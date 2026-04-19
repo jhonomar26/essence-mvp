@@ -1,5 +1,6 @@
 @page "/projects"
 @rendermode InteractiveServer
+@implements IDisposable
 
 <PageTitle>Mis proyectos — Essence</PageTitle>
 
@@ -129,9 +130,26 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Auth.OnChange += OnAuthChanged;
         if (Auth.IsAuthenticated)
             _projects = await Api.GetProjectsAsync();
     }
+
+    private async void OnAuthChanged()
+    {
+        if (Auth.IsAuthenticated && _projects is null)
+        {
+            _projects = await Api.GetProjectsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        else if (!Auth.IsAuthenticated)
+        {
+            _projects = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose() => Auth.OnChange -= OnAuthChanged;
 
     private void OpenForm(ProjectDto? project)
     {

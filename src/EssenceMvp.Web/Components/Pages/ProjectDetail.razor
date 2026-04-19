@@ -1,5 +1,6 @@
 @page "/projects/{Id:int}"
 @rendermode InteractiveServer
+@implements IDisposable
 
 <PageTitle>@(_project?.Name ?? "Proyecto") — Essence</PageTitle>
 
@@ -169,10 +170,27 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        if (!Auth.IsAuthenticated) { _loading = false; return; }
-        _project = await Api.GetProjectAsync(Id);
+        Auth.OnChange += OnAuthChanged;
+        if (Auth.IsAuthenticated)
+        {
+            _project = await Api.GetProjectAsync(Id);
+        }
         _loading = false;
     }
+
+    private async void OnAuthChanged()
+    {
+        if (Auth.IsAuthenticated && _project is null && !_loading)
+        {
+            _loading = true;
+            await InvokeAsync(StateHasChanged);
+            _project = await Api.GetProjectAsync(Id);
+            _loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose() => Auth.OnChange -= OnAuthChanged;
 
     private void ToggleEdit()
     {
