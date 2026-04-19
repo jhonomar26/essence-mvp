@@ -72,6 +72,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapAuthEndpoints();
 app.MapProjectEndpoints();
+app.MapAlphaEndpoints();
 
 app.MapGet("/health", async (EssenceDbContext db) =>
 {
