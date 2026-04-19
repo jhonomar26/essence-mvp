@@ -1,5 +1,6 @@
 @page "/register"
 @rendermode InteractiveServer
+@using EssenceMvp.Web.Services
 
 <PageTitle>Crear cuenta — Essence</PageTitle>
 
@@ -7,14 +8,18 @@
     <MudPaper Elevation="3" Class="pa-8">
         <MudText Typo="Typo.h5" Align="Align.Center" GutterBottom="true">Crear cuenta</MudText>
 
-        <MudTextField @bind-Value="_displayName" Label="Nombre (opcional)" Variant="Variant.Outlined"
-                      Class="mb-4" FullWidth="true" />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_displayName" Label="Nombre (opcional)" Variant="Variant.Outlined"
+                          Class="mb-4" FullWidth="true" />
 
-        <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
-                      InputType="InputType.Email" Class="mb-4" FullWidth="true" />
+            <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Class="mb-4" FullWidth="true"
+                          Validation="@((Func<string, string?>)FormValidators.Email)"
+                          Immediate="true" />
 
-        <MudTextField @bind-Value="_password" Label="Contraseña (mín. 6 caracteres)" Variant="Variant.Outlined"
-                      InputType="InputType.Password" Class="mb-4" FullWidth="true" />
+            <MudTextField @bind-Value="_password" Label="Contraseña (mín. 6 caracteres)" Variant="Variant.Outlined"
+                          InputType="InputType.Password" Class="mb-4" FullWidth="true" />
+        </MudForm>
 
         @if (!string.IsNullOrWhiteSpace(_message))
         {
@@ -40,6 +45,7 @@
     [Inject] StorageService Storage { get; set; } = default!;
     [Inject] NavigationManager Nav { get; set; } = default!;
 
+    private MudForm _form = default!;
     private string _displayName = "";
     private string _email = "";
     private string _password = "";
@@ -49,12 +55,9 @@
 
     private async Task DoRegister()
     {
-        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
-        {
-            _isError = true;
-            _message = "Email y contraseña son obligatorios.";
-            return;
-        }
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
         if (_password.Length < 6)
         {
             _isError = true;

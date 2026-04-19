@@ -21,7 +21,13 @@ var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<EssenceDbContext>(options =>
     options.UseNpgsql(dataSource));
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-only-change-me-please-dev-only-change-me";
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) ||
+    jwtKey == "dev-only-change-me-please-dev-only-change-me")
+{
+    throw new InvalidOperationException(
+        "JWT signing key is not configured or is using the insecure development default. Configure Jwt:Key before starting the application.");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "EssenceMvp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "EssenceMvp";
 

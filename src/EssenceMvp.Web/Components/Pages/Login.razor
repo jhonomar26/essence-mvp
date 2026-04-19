@@ -1,5 +1,6 @@
 @page "/login"
 @rendermode InteractiveServer
+@using EssenceMvp.Web.Services
 
 <PageTitle>Iniciar sesión — Essence</PageTitle>
 
@@ -7,13 +8,17 @@
     <MudPaper Elevation="3" Class="pa-8">
         <MudText Typo="Typo.h5" Align="Align.Center" GutterBottom="true">Iniciar sesión</MudText>
 
-        <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
-                      InputType="InputType.Email" Class="mb-4" FullWidth="true" />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Class="mb-4" FullWidth="true"
+                          Validation="@((Func<string, string?>)FormValidators.Email)"
+                          Immediate="true" />
 
-        <MudTextField @bind-Value="_password" Label="Contraseña" Variant="Variant.Outlined"
-                      InputType="@_pwdType" Class="mb-4" FullWidth="true"
-                      Adornment="Adornment.End" AdornmentIcon="@_pwdIcon"
-                      OnAdornmentClick="TogglePwd" />
+            <MudTextField @bind-Value="_password" Label="Contraseña" Variant="Variant.Outlined"
+                          InputType="@_pwdType" Class="mb-4" FullWidth="true"
+                          Adornment="Adornment.End" AdornmentIcon="@_pwdIcon"
+                          OnAdornmentClick="TogglePwd" />
+        </MudForm>
 
         @if (!string.IsNullOrWhiteSpace(_message))
         {
@@ -39,6 +44,7 @@
     [Inject] StorageService Storage { get; set; } = default!;
     [Inject] NavigationManager Nav { get; set; } = default!;
 
+    private MudForm _form = default!;
     private string _email = "";
     private string _password = "";
     private string? _message;
@@ -63,6 +69,9 @@
 
     private async Task DoLogin()
     {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
         _loading = true;
         _isError = false;
         _message = null;
