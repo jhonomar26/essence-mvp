@@ -47,6 +47,19 @@ CREATE TABLE app_user
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE user_session
+(
+    id                     SERIAL PRIMARY KEY,
+    app_user_id            INT          NOT NULL REFERENCES app_user (id) ON DELETE CASCADE,
+    refresh_token_hash     VARCHAR(128) NOT NULL UNIQUE,
+    created_at             TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    expires_at             TIMESTAMPTZ  NOT NULL,
+    revoked_at             TIMESTAMPTZ,
+    replaced_by_token_hash VARCHAR(128)
+);
+
+CREATE INDEX ix_user_session_app_user_id ON user_session (app_user_id);
+
 -- ─────────────────────────────────────────────
 --  PROYECTOS
 -- ─────────────────────────────────────────────

@@ -15,6 +15,7 @@ public class EssenceDbContext : DbContext
     public DbSet<ChecklistResponse> ChecklistResponses { get; set; }
     public DbSet<HealthReport> HealthReports { get; set; }
     public DbSet<AppUser> AppUsers { get; set; }
+    public DbSet<UserSession> UserSessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +60,20 @@ public class EssenceDbContext : DbContext
             e.Property(u => u.PasswordHash).HasColumnName("password_hash");
             e.Property(u => u.DisplayName).HasColumnName("display_name");
             e.Property(u => u.CreatedAt).HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<UserSession>(e =>
+        {
+            e.ToTable("user_session");
+            e.Property(s => s.Id).HasColumnName("id");
+            e.Property(s => s.AppUserId).HasColumnName("app_user_id");
+            e.Property(s => s.RefreshTokenHash).HasColumnName("refresh_token_hash");
+            e.Property(s => s.ExpiresAt).HasColumnName("expires_at");
+            e.Property(s => s.CreatedAt).HasColumnName("created_at");
+            e.Property(s => s.RevokedAt).HasColumnName("revoked_at");
+            e.Property(s => s.ReplacedByTokenHash).HasColumnName("replaced_by_token_hash");
+            e.HasOne(s => s.AppUser).WithMany().HasForeignKey(s => s.AppUserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(s => s.RefreshTokenHash).IsUnique();
         });
 
         modelBuilder.Entity<Project>(e =>

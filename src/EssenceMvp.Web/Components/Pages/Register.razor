@@ -1,6 +1,5 @@
 @page "/register"
 @rendermode InteractiveServer
-@using EssenceMvp.Web.Services
 
 <PageTitle>Crear cuenta — Essence</PageTitle>
 
@@ -44,6 +43,7 @@
     [Inject] AuthState Auth { get; set; } = default!;
     [Inject] StorageService Storage { get; set; } = default!;
     [Inject] NavigationManager Nav { get; set; } = default!;
+    [Inject] SessionAuthenticationStateProvider AuthProvider { get; set; } = default!;
 
     private MudForm _form = default!;
     private string _displayName = "";
@@ -76,10 +76,10 @@
                     string.IsNullOrWhiteSpace(_displayName) ? null : _displayName.Trim())
             );
             if (result is null) throw new Exception("El servidor no devolvió sesión.");
-            await Storage.SetAsync("essence_session",
-                System.Text.Json.JsonSerializer.Serialize(result));
+            await Storage.SetAsync("essence_session", System.Text.Json.JsonSerializer.Serialize(result));
             Auth.SetSession(result);
-            Nav.NavigateTo("/projects");
+            AuthProvider.NotifySessionChanged();
+            Nav.NavigateTo("/projects", forceLoad: false);
         }
         catch (Exception ex)
         {

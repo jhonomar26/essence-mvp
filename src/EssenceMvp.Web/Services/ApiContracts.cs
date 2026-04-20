@@ -1,8 +1,9 @@
-namespace EssenceMvp.Web.Services;
+﻿namespace EssenceMvp.Web.Services;
 
 public sealed record RegisterRequest(string Email, string Password, string? DisplayName);
 public sealed record LoginRequest(string Email, string Password);
-public sealed record AuthResponse(string Token, string Email, string? DisplayName);
+public sealed record AuthResponse(string Token, string RefreshToken, string Email, string? DisplayName);
+public sealed record RefreshRequest(string RefreshToken);
 
 public sealed record ProjectDto(int Id, string Name, string? Description, string? Phase, DateTime CreatedAt);
 public sealed record CreateProjectRequest(string Name, string? Description, string? Phase);

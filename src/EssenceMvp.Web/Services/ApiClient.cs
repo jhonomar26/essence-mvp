@@ -35,6 +35,18 @@ public sealed class ApiClient
         return await response.Content.ReadFromJsonAsync<AuthResponse>();
     }
 
+    public async Task<AuthResponse?> RefreshAsync(string refreshToken)
+    {
+        var response = await _http.PostAsJsonAsync("auth/refresh", new RefreshRequest(refreshToken));
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<AuthResponse>();
+    }
+
+    public async Task LogoutAsync(string refreshToken)
+    {
+        await _http.PostAsJsonAsync("auth/logout", new RefreshRequest(refreshToken));
+    }
+
     // ── Projects ──────────────────────────────────────────────────────────
 
     public async Task<List<ProjectDto>> GetProjectsAsync()

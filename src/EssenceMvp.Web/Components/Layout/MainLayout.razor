@@ -1,8 +1,4 @@
 @inherits LayoutComponentBase
-@implements IDisposable
-@inject AuthState Auth
-@inject StorageService Storage
-@inject NavigationManager Nav
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -13,16 +9,7 @@
     <MudAppBar Elevation="1" Color="Color.Dark">
         <MudText Typo="Typo.h6" Class="ml-2">Essence</MudText>
         <MudSpacer />
-        @if (Auth.IsAuthenticated)
-        {
-            <MudText Typo="Typo.body2" Class="mr-3 mud-text-secondary d-none d-sm-block">@Auth.Email</MudText>
-            <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="Logout">Salir</MudButton>
-        }
-        else
-        {
-            <MudButton Href="/login" Variant="Variant.Text" Color="Color.Inherit">Entrar</MudButton>
-            <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Inherit" Class="ml-2">Registrarse</MudButton>
-        }
+        <AuthHeader />
     </MudAppBar>
 
     <MudMainContent>
@@ -31,18 +18,3 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
-
-@code {
-    protected override void OnInitialized() =>
-        Auth.OnChange += StateHasChanged;
-
-    public void Dispose() =>
-        Auth.OnChange -= StateHasChanged;
-
-    private async Task Logout()
-    {
-        Auth.Clear();
-        await Storage.RemoveAsync("essence_session");
-        Nav.NavigateTo("/login");
-    }
-}

@@ -1,19 +1,27 @@
-@inject EssenceMvp.Web.Services.AuthState Auth
-@inject EssenceMvp.Web.Services.StorageService Storage
+@inject AuthState Auth
+@inject StorageService Storage
+@inject SessionAuthenticationStateProvider AuthProvider
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender || Auth.IsAuthenticated) return;
         try
         {
             var json = await Storage.GetAsync("essence_session");
             if (json is null) return;
-            var session = System.Text.Json.JsonSerializer.Deserialize<EssenceMvp.Web.Services.AuthResponse>(
+
+            var session = System.Text.Json.JsonSerializer.Deserialize<AuthResponse>(
                 json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
             if (session?.Token is not null)
+            {
                 Auth.SetSession(session);
+                AuthProvider.NotifySessionChanged();
+            }
         }
-        catch { }
+        catch
+        {
+            // ignore corrupt storage
+        }
     }
 }

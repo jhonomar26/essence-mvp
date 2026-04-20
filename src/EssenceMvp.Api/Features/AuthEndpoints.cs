@@ -1,14 +1,19 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using EssenceMvp.Api.Infrastructure;
 using EssenceMvp.Api.Infrastructure.Entities;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EssenceMvp.Api.Features;
+
+public sealed record RegisterRequest(string Email, string Password, string? DisplayName);
+public sealed record LoginRequest(string Email, string Password);
+public sealed record AuthResponse(string Token, string RefreshToken, string Email, string? DisplayName);
+public sealed record RefreshRequest(string RefreshToken);
 
 public static class AuthEndpoints
 {
@@ -38,8 +43,8 @@ public static class AuthEndpoints
             db.AppUsers.Add(user);
             await db.SaveChangesAsync();
 
-            var token = CreateToken(user, config);
-            return Results.Ok(new AuthResponse(token, user.Email, user.DisplayName));
+            var session = await CreateSessionAsync(db, user, config);
+            return Results.Ok(session);
         });
 
         group.MapPost("/login", async (LoginRequest request, EssenceDbContext db, IConfiguration config) =>
@@ -54,8 +59,39 @@ public static class AuthEndpoints
             if (verification == PasswordVerificationResult.Failed)
                 return Results.Unauthorized();
 
-            var token = CreateToken(user, config);
-            return Results.Ok(new AuthResponse(token, user.Email, user.DisplayName));
+            var session = await CreateSessionAsync(db, user, config);
+            return Results.Ok(session);
+        });
+
+        group.MapPost("/refresh", async (RefreshRequest request, EssenceDbContext db, IConfiguration config) =>
+        {
+            var refreshHash = HashToken(request.RefreshToken);
+            var session = await db.UserSessions
+                .Include(s => s.AppUser)
+                .SingleOrDefaultAsync(s => s.RefreshTokenHash == refreshHash);
+
+            if (session is null || session.RevokedAt is not null || session.ExpiresAt <= DateTime.UtcNow)
+                return Results.Unauthorized();
+
+            var user = session.AppUser;
+            session.RevokedAt = DateTime.UtcNow;
+            var newSession = await CreateSessionAsync(db, user, config);
+            session.ReplacedByTokenHash = HashToken(newSession.RefreshToken);
+            await db.SaveChangesAsync();
+
+            return Results.Ok(newSession);
+        });
+
+        group.MapPost("/logout", async (RefreshRequest request, EssenceDbContext db) =>
+        {
+            var refreshHash = HashToken(request.RefreshToken);
+            var session = await db.UserSessions.SingleOrDefaultAsync(s => s.RefreshTokenHash == refreshHash);
+            if (session is null)
+                return Results.NoContent();
+
+            session.RevokedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+            return Results.NoContent();
         });
 
         group.MapGet("/me", (ClaimsPrincipal user) =>
@@ -66,6 +102,23 @@ public static class AuthEndpoints
         }).RequireAuthorization();
 
         return group;
+    }
+
+    private static async Task<AuthResponse> CreateSessionAsync(EssenceDbContext db, AppUser user, IConfiguration config)
+    {
+        var refreshToken = GenerateRefreshToken();
+        var session = new UserSession
+        {
+            AppUserId = user.Id,
+            RefreshTokenHash = HashToken(refreshToken),
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(30)
+        };
+
+        db.UserSessions.Add(session);
+        await db.SaveChangesAsync();
+
+        return new AuthResponse(CreateToken(user, config), refreshToken, user.Email, user.DisplayName);
     }
 
     private static string CreateToken(AppUser user, IConfiguration config)
@@ -94,5 +147,16 @@ public static class AuthEndpoints
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-}
 
+    private static string GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        return Convert.ToBase64String(bytes);
+    }
+
+    private static string HashToken(string token)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(bytes);
+    }
+}
