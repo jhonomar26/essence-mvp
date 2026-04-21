@@ -1,0 +1,88 @@
+@model ProjectDetailViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    var (healthBg, healthText) = Model.OverallHealth switch
+    {
+        HealthStatus.Green => ("bg-success", "text-white"),
+        HealthStatus.Yellow => ("bg-warning", "text-dark"),
+        _ => ("bg-danger", "text-white")
+    };
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Projects</a></li>
+        <li class="breadcrumb-item active">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="mb-1">@Model.Name</h2>
+        @if (Model.Phase != null)
+        {
+            <span class="badge bg-secondary me-2">@Model.Phase</span>
+        }
+        @if (Model.Description != null)
+        {
+            <p class="text-muted mt-2 mb-0">@Model.Description</p>
+        }
+    </div>
+    <div class="text-center ms-4">
+        <div class="semaforo @healthBg @healthText">
+            <i class="bi bi-circle-fill d-block" style="font-size: 1.5rem;"></i>
+            <small class="d-block mt-1 fw-bold" style="font-size: 0.65rem;">@Model.OverallHealth</small>
+        </div>
+        <small class="text-muted d-block mt-1">Health</small>
+    </div>
+</div>
+
+<h5 class="mb-3 text-muted fw-semibold">
+    <i class="bi bi-grid-3x3-gap"></i> Alphas
+</h5>
+
+<div class="row row-cols-1 row-cols-md-2 g-3">
+    @foreach (var alpha in Model.AlphaProgress)
+    {
+        var (borderClass, barClass, badgeBg) = alpha.AlphaHealth switch
+        {
+            HealthStatus.Green => ("border-success", "bg-success", "bg-success"),
+            HealthStatus.Yellow => ("border-warning", "bg-warning", "bg-warning text-dark"),
+            _ => ("border-danger", "bg-danger", "bg-danger")
+        };
+        <div class="col">
+            <div class="card border @borderClass">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <h6 class="mb-0 fw-semibold">@alpha.AlphaName</h6>
+                            <small class="text-muted">@alpha.AreaOfConcern</small>
+                        </div>
+                        <span class="badge @badgeBg flex-shrink-0 ms-2">
+                            @alpha.CurrentStateNumber / @alpha.TotalStates
+                        </span>
+                    </div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar @barClass"
+                             role="progressbar"
+                             style="width: @alpha.CompletionPercent%"
+                             aria-valuenow="@alpha.CompletionPercent"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted mt-1 d-block">
+                        @if (alpha.CurrentStateNumber == 0)
+                        {
+                            <span>Not started</span>
+                        }
+                        else
+                        {
+                            <span>@alpha.CurrentStateName &bull; @alpha.CompletionPercent% complete</span>
+                        }
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+</div>

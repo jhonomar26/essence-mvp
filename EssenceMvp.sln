@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Api", "src\Essen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Web", "src\EssenceMvp.Web\EssenceMvp.Web.csproj", "{A9A69C56-7FE9-4DD3-9F14-CC9D6723E2E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Mvc", "src\EssenceMvp.Mvc\EssenceMvp.Mvc.csproj", "{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,9 +23,14 @@ Global
 		{A9A69C56-7FE9-4DD3-9F14-CC9D6723E2E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9A69C56-7FE9-4DD3-9F14-CC9D6723E2E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9A69C56-7FE9-4DD3-9F14-CC9D6723E2E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A327AFD5-4901-4A9C-B617-5E66330900BA} = {DC4F7E5C-B7BD-45B8-BC5F-6FC7C6FF4B53}
 		{A9A69C56-7FE9-4DD3-9F14-CC9D6723E2E4} = {DC4F7E5C-B7BD-45B8-BC5F-6FC7C6FF4B53}
+		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390} = {DC4F7E5C-B7BD-45B8-BC5F-6FC7C6FF4B53}
 	EndGlobalSection
 EndGlobal
