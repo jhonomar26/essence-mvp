@@ -1,43 +1,71 @@
 @model CreateProjectViewModel
 @{
-    ViewData["Title"] = "New Project";
+    ViewData["Title"] = "Nuevo proyecto";
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a asp-action="Index">Projects</a></li>
-        <li class="breadcrumb-item active">New Project</li>
+        <li class="breadcrumb-item"><a asp-action="Index">Proyectos</a></li>
+        <li class="breadcrumb-item active">Nuevo proyecto</li>
     </ol>
 </nav>
 
 <div class="row justify-content-center">
     <div class="col-md-6">
+
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h4 class="card-title mb-4">Create project</h4>
+
+                <h4 class="card-title mb-4">Crear proyecto</h4>
+
                 <form asp-action="Create" method="post">
+
                     <div asp-validation-summary="All" class="alert alert-danger py-2 small"></div>
+
                     <div class="mb-3">
-                        <label asp-for="Name" class="form-label">Project name <span class="text-danger">*</span></label>
-                        <input asp-for="Name" class="form-control" placeholder="My Project" autofocus />
+                        <label asp-for="Name" class="form-label">
+                            Nombre del proyecto <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Mi proyecto" autofocus />
                         <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
+
                     <div class="mb-3">
-                        <label asp-for="Phase" class="form-label">Phase</label>
-                        <input asp-for="Phase" class="form-control" placeholder="e.g. Inception, Construction..." />
-                    </div>
+                        <label asp-for="Phase" class="form-label">Fase</label>
+                        <div class="mb-3">
+                            <label asp-for="Phase" class="form-label">Fase</label>
+
+                            <select asp-for="Phase" class="form-select">
+                                <option value="Initiated">Initiated</option>
+                                <option value="Exploring">Exploring</option>
+                                <option value="In Development">In Development</option>
+                                <option value="Stabilizing">Stabilizing</option>
+                                <option value="Operational">Operational</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+
+                            <span asp-validation-for="Phase" class="text-danger small"></span>
+                        </div>                    </div>
+
                     <div class="mb-3">
-                        <label asp-for="Description" class="form-label">Description</label>
-                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description..."></textarea>
+                        <label asp-for="Description" class="form-label">Descripción</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Descripción breve..."></textarea>
                     </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-plus-lg"></i> Create
+                            <i class="bi bi-plus-lg"></i> Crear
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
                     </div>
+
                 </form>
+
             </div>
         </div>
+
     </div>
 </div>
