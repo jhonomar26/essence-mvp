@@ -31,7 +31,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IAlphaService, AlphaService>();
 builder.Services.AddScoped<IHealthService, HealthService>();
-
+builder.Services.AddScoped<IAlphaEvaluationService, AlphaEvaluationService>();
+builder.Services.AddScoped<IHealthCalculationService, HealthCalculationService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
