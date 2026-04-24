@@ -1,4 +1,5 @@
 using System.Text;
+using EssenceMvp.Api.Application.Services;
 using EssenceMvp.Api.Features;
 using EssenceMvp.Api.Infrastructure;
 using EssenceMvp.Api.Infrastructure.Entities;
@@ -20,6 +21,9 @@ var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<EssenceDbContext>(options =>
     options.UseNpgsql(dataSource));
+
+builder.Services.AddScoped<IAlphaEvaluationService, AlphaEvaluationService>();
+builder.Services.AddScoped<IHealthCalculationService, HealthCalculationService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) ||

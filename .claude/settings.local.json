@@ -16,7 +16,8 @@
       "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css\" -o C:/Users/jhono/RiderProjects/EssenceMvp/src/EssenceMvp.Web/wwwroot/lib/bootstrap/bootstrap.min.css)",
       "Bash(grep -r \"using \" \"C:\\\\Users\\\\jhono\\\\RiderProjects\\\\EssenceMvp\\\\src\\\\EssenceMvp.Api\" --include=\"*.cs\" ! -path \"*/bin/*\" ! -path \"*/obj/*\")",
       "Bash(git checkout *)",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(xargs basename *)"
     ]
   }
 }

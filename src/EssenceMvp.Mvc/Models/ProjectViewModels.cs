@@ -38,7 +38,7 @@ public class AlphaProgressDto
     public int AlphaId { get; set; }
     public string AlphaName { get; set; } = "";
     public string AreaOfConcern { get; set; } = "";
-    public int CurrentStateNumber { get; set; }
+    public short CurrentStateNumber { get; set; }
     public int TotalStates { get; set; }
     public string CurrentStateName { get; set; } = "";
     public double CompletionPercent { get; set; }

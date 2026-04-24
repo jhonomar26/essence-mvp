@@ -2,6 +2,6 @@
 
 public class AlphaStateResult
 {
-    public int CurrentStateNumber { get; set; }
+    public short CurrentStateNumber { get; set; }
     public string CurrentStateName { get; set; } = "";
 }

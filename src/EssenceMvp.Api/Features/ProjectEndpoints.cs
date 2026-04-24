@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EssenceMvp.Api.Application.Services;
 using EssenceMvp.Api.Infrastructure;
 using EssenceMvp.Api.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -158,6 +159,105 @@ public static class ProjectEndpoints
             await db.SaveChangesAsync();
 
             return Results.NoContent();
+        });
+
+        // GET /projects/{id}/health — global semaforo + alpha details
+        group.MapGet("/{id:int}/health",
+            async (int id, ClaimsPrincipal user, EssenceDbContext db,
+                   IAlphaEvaluationService alphaService,
+                   IHealthCalculationService healthService) =>
+        {
+            if (!TryGetUserId(user, out var userId)) return Results.Unauthorized();
+
+            var project = await db.Projects
+                .AsNoTracking()
+                .Include(p => p.AlphaStatuses)
+                    .ThenInclude(s => s.Alpha)
+                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+
+            if (project is null) return Results.NotFound();
+
+            var globalStatus = await healthService.CalculateAsync(id);
+
+            var alphaDetails = new List<AlphaHealthDto>();
+            foreach (var status in project.AlphaStatuses.OrderBy(s => s.Alpha.AreaOfConcern))
+            {
+                var stateResult = await alphaService.CalculateAsync(id, status.AlphaId);
+                alphaDetails.Add(new AlphaHealthDto
+                {
+                    AlphaId = status.AlphaId,
+                    AlphaName = status.Alpha.Name,
+                    CurrentStateNumber = stateResult.CurrentStateNumber,
+                    CurrentStateName = stateResult.CurrentStateName
+                });
+            }
+
+            var healthDto = new HealthDto
+            {
+                GlobalStatus = globalStatus,
+                AlphaDetails = alphaDetails
+            };
+
+            return Results.Ok(healthDto);
+        });
+
+        // POST /projects/{id}/checklist-responses — save responses + recalculate
+        group.MapPost("/{id:int}/checklist-responses",
+            async (int id, ChecklistResponseRequest req, ClaimsPrincipal user,
+                   EssenceDbContext db, IAlphaEvaluationService alphaService) =>
+        {
+            if (!TryGetUserId(user, out var userId)) return Results.Unauthorized();
+
+            var project = await db.Projects.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+            if (project is null) return Results.NotFound();
+
+            // Save responses to database
+            foreach (var item in req.Items)
+            {
+                var existing = await db.ChecklistResponses
+                    .FirstOrDefaultAsync(r => r.ProjectId == id && r.StateChecklistId == item.StateChecklistId);
+
+                if (existing is null)
+                {
+                    db.ChecklistResponses.Add(new ChecklistResponse
+                    {
+                        ProjectId = id,
+                        StateChecklistId = item.StateChecklistId,
+                        IsAchieved = item.IsAchieved,
+                        Notes = item.Notes,
+                        UpdatedAt = DateTimeOffset.UtcNow
+                    });
+                }
+                else
+                {
+                    existing.IsAchieved = item.IsAchieved;
+                    existing.Notes = item.Notes;
+                    existing.UpdatedAt = DateTimeOffset.UtcNow;
+                }
+            }
+
+            await db.SaveChangesAsync();
+
+            // Recalculate Alpha state
+            var alphaState = await alphaService.CalculateAsync(id, req.AlphaId);
+
+            // Update ProjectAlphaStatus
+            var projAlpha = await db.ProjectAlphaStatuses
+                .FirstOrDefaultAsync(p => p.ProjectId == id && p.AlphaId == req.AlphaId);
+
+            if (projAlpha is not null)
+            {
+                projAlpha.CurrentStateNumber = alphaState.CurrentStateNumber;
+                projAlpha.UpdatedAt = DateTimeOffset.UtcNow;
+                await db.SaveChangesAsync();
+            }
+
+            return Results.Ok(new RecalculateAlphaStateDto
+            {
+                AlphaId = req.AlphaId,
+                NewStateNumber = alphaState.CurrentStateNumber,
+                StateName = alphaState.CurrentStateName
+            });
         });
 
         return group;

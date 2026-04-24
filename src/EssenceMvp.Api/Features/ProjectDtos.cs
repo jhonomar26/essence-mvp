@@ -41,3 +41,37 @@ public sealed class AlphaStatusDto
     public int CurrentStateNumber { get; init; }
     public string? CurrentStateName { get; init; }
 }
+
+public sealed class HealthDto
+{
+    public string GlobalStatus { get; init; } = null!;
+    public List<AlphaHealthDto> AlphaDetails { get; init; } = new();
+}
+
+public sealed class AlphaHealthDto
+{
+    public int AlphaId { get; init; }
+    public string AlphaName { get; init; } = null!;
+    public short CurrentStateNumber { get; init; }
+    public string CurrentStateName { get; init; } = null!;
+}
+
+public sealed class ChecklistResponseRequest
+{
+    public int AlphaId { get; init; }
+    public List<ChecklistItemRequest> Items { get; init; } = new();
+}
+
+public sealed class ChecklistItemRequest
+{
+    public int StateChecklistId { get; init; }
+    public bool IsAchieved { get; init; }
+    public string? Notes { get; init; }
+}
+
+public sealed class RecalculateAlphaStateDto
+{
+    public int AlphaId { get; init; }
+    public short NewStateNumber { get; init; }
+    public string StateName { get; init; } = null!;
+}

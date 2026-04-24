@@ -45,7 +45,7 @@
 </div>
 
 <h5 class="mb-3 text-muted fw-semibold">
-    <i class="bi bi-grid-3x3-gap"></i> Álgebras
+    <i class="bi bi-grid-3x3-gap"></i> Alphas
 </h5>
 
 <div class="row row-cols-1 row-cols-md-2 g-3">
@@ -97,9 +97,30 @@
                     }
                 </small>
 
+                <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#evaluateAlphaModal_@alpha.AlphaId">
+                        <i class="bi bi-pencil-square"></i> Evaluar
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>
+}
+
+@* Modales de evaluación *@
+@{
+    var alphaChecklists = (Dictionary<int, List<(int Id, string CriterionText, bool IsAchieved)>>)ViewBag.AlphaChecklists;
+    if (alphaChecklists != null)
+    {
+        foreach (var alpha in Model.AlphaProgress)
+        {
+            if (alphaChecklists.TryGetValue(alpha.AlphaId, out var checklists))
+            {
+                await Html.RenderPartialAsync("_AlphaEvaluationModal", (Model.Id, alpha.AlphaId, alpha.AlphaName, checklists));
+            }
+        }
+    }
 }
 
 </div>

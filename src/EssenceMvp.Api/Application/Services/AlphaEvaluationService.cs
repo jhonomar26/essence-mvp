@@ -1,8 +1,7 @@
-﻿using EssenceMvp.Mvc.Infrastructure;
-using EssenceMvp.Mvc.Models;
+using EssenceMvp.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
-namespace EssenceMvp.Mvc.Application.Services;
+namespace EssenceMvp.Api.Application.Services;
 
 public class AlphaEvaluationService : IAlphaEvaluationService
 {
@@ -13,7 +12,6 @@ public class AlphaEvaluationService : IAlphaEvaluationService
         _db = db;
     }
 
-    // Cálculo acumulativo: Alpha está en estado N solo si TODOS los checkpoints de 1..N están satisfechos.
     public async Task<AlphaStateResult> CalculateAsync(int projectId, int alphaId)
     {
         var alpha = await _db.Alphas
@@ -22,14 +20,13 @@ public class AlphaEvaluationService : IAlphaEvaluationService
             .FirstOrDefaultAsync(a => a.Id == alphaId);
 
         if (alpha == null)
-            return new AlphaStateResult { CurrentStateNumber = 0, CurrentStateName = "Not Found" };
+            return new AlphaStateResult(0, "Not Found");
 
         var states = alpha.States.OrderBy(s => s.StateNumber);
 
         short current = 0;
         string name = "Not Started";
 
-        // Itera estados ordenados. Se detiene en el primero incompleto.
         foreach (var state in states)
         {
             var checklistIds = state.Checklists.Select(c => c.Id).ToList();
@@ -49,10 +46,6 @@ public class AlphaEvaluationService : IAlphaEvaluationService
             name = state.StateName;
         }
 
-        return new AlphaStateResult
-        {
-            CurrentStateNumber = current,
-            CurrentStateName = name
-        };
+        return new AlphaStateResult(current, name);
     }
 }

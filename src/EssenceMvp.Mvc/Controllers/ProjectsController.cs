@@ -60,6 +60,15 @@ public class ProjectsController : Controller
         var alphaProgress = await _alphas.GetProjectAlphaProgressAsync(id, UserId);
         var health = await _health.CalculateHealthAsync(id, UserId);
 
+        // Load checklists for each alpha to pass to modals
+        var alphaChecklists = new Dictionary<int, List<(int Id, string CriterionText, bool IsAchieved)>>();
+        foreach (var alpha in alphaProgress)
+        {
+            alphaChecklists[alpha.AlphaId] = await _projects.GetAlphaChecklistsAsync(id, alpha.AlphaId);
+        }
+
+        ViewBag.AlphaChecklists = alphaChecklists;
+
         var vm = new ProjectDetailViewModel
         {
             Id = project.Id,

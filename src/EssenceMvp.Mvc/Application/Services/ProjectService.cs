@@ -59,4 +59,66 @@ public class ProjectService : IProjectService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    // Guarda/actualiza respuestas de evaluación de checklist (upsert)
+    public async Task SaveChecklistResponsesAsync(int projectId, List<(int stateChecklistId, bool isAchieved, string? notes)> responses)
+    {
+        foreach (var (checklistId, isAchieved, notes) in responses)
+        {
+            var existing = await _db.ChecklistResponses
+                .FirstOrDefaultAsync(r => r.ProjectId == projectId && r.StateChecklistId == checklistId);
+
+            if (existing == null)
+            {
+                // Nueva respuesta
+                _db.ChecklistResponses.Add(new ChecklistResponse
+                {
+                    ProjectId = projectId,
+                    StateChecklistId = checklistId,
+                    IsAchieved = isAchieved,
+                    Notes = notes,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                });
+            }
+            else
+            {
+                // Actualiza respuesta existente
+                existing.IsAchieved = isAchieved;
+                existing.Notes = notes;
+                existing.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+        }
+        await _db.SaveChangesAsync();
+    }
+
+    // Obtiene todos los criterios/checklists de un Alpha ordenados por estado, con estado actual
+    public async Task<List<(int Id, string CriterionText, bool IsAchieved)>> GetAlphaChecklistsAsync(int projectId, int alphaId)
+    {
+        var alpha = await _db.Alphas
+            .Include(a => a.States)
+            .ThenInclude(s => s.Checklists)
+            .FirstOrDefaultAsync(a => a.Id == alphaId);
+
+        if (alpha == null) return new();
+
+        // Obtiene respuestas previas del proyecto
+        var responses = await _db.ChecklistResponses
+            .Where(r => r.ProjectId == projectId)
+            .ToListAsync();
+
+        var result = new List<(int Id, string CriterionText, bool IsAchieved)>();
+
+        // Itera estados ordenados y sus checklists
+        foreach (var state in alpha.States.OrderBy(s => s.StateNumber))
+        {
+            foreach (var checklist in state.Checklists)
+            {
+                var response = responses.FirstOrDefault(r => r.StateChecklistId == checklist.Id);
+                // IsAchieved: true si existe respuesta anterior y está marcada, false si no existe
+                result.Add((checklist.Id, checklist.CriterionText, response?.IsAchieved ?? false));
+            }
+        }
+
+        return result;
+    }
 }
