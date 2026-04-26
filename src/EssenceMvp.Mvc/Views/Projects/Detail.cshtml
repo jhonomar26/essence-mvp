@@ -3,8 +3,8 @@
     ViewData["Title"] = Model.Name;
     var (healthBg, healthText) = Model.OverallHealth switch
     {
-        HealthStatus.Green => ("bg-success", "text-white"),
-        HealthStatus.Yellow => ("bg-warning", "text-dark"),
+        HealthStatus.green => ("bg-success", "text-white"),
+        HealthStatus.yellow => ("bg-warning", "text-dark"),
         _ => ("bg-danger", "text-white")
     };
 }
