@@ -26,6 +26,8 @@ CREATE TABLE alpha_state
     UNIQUE (alpha_id, state_number)
 );
 
+
+
 CREATE TABLE state_checklist
 (
     id             SERIAL PRIMARY KEY,
@@ -33,7 +35,6 @@ CREATE TABLE state_checklist
     criterion_text TEXT    NOT NULL,
     is_mandatory   BOOLEAN NOT NULL DEFAULT TRUE
 );
-
 -- ─────────────────────────────────────────────
 --  AUTENTICACIÓN
 -- ─────────────────────────────────────────────
@@ -46,7 +47,7 @@ CREATE TABLE app_user
     display_name  VARCHAR(100),
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
-
+select * from user_session;
 CREATE TABLE user_session
 (
     id                     SERIAL PRIMARY KEY,
@@ -63,7 +64,6 @@ CREATE INDEX ix_user_session_app_user_id ON user_session (app_user_id);
 -- ─────────────────────────────────────────────
 --  PROYECTOS
 -- ─────────────────────────────────────────────
-
 CREATE TABLE project
 (
     id           SERIAL PRIMARY KEY,
@@ -76,6 +76,7 @@ CREATE TABLE project
 
 CREATE INDEX ix_project_user_id ON project (user_id);
 
+-- en que nivel de detalle se encuentra cada Alpha dentro de un proyecto (0 = ninguno aún).F
 -- Estado actual de cada Alpha dentro de un proyecto.
 -- current_state_number = último estado completamente alcanzado (0 = ninguno aún).
 CREATE TABLE project_alpha_status
@@ -101,8 +102,7 @@ CREATE TABLE checklist_response
 );
 
 -- Snapshot del semáforo global en un momento dado.
--- Nota: valores en minúsculas para compatibilidad con el traductor de nombres de Npgsql.
-CREATE TYPE health_status AS ENUM ('green', 'yellow', 'red');
+CREATE TYPE health_status AS ENUM ('Green', 'Yellow', 'Red');
 
 CREATE TABLE health_report
 (
@@ -110,9 +110,12 @@ CREATE TABLE health_report
     project_id    INT           NOT NULL REFERENCES project (id) ON DELETE CASCADE,
     created_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
     global_status health_status NOT NULL,
-    alpha_details JSONB
+    alpha_details JSONB -- detalle por Alpha en el momento del snapshot
 );
 
+ALTER TYPE health_status RENAME VALUE 'Green' TO 'green';
+ALTER TYPE health_status RENAME VALUE 'Yellow' TO 'yellow';
+ALTER TYPE health_status RENAME VALUE 'Red' TO 'red';
 -- ─────────────────────────────────────────────
 --  ÍNDICES
 -- ─────────────────────────────────────────────
@@ -124,341 +127,218 @@ CREATE INDEX ix_checklist_response_project ON checklist_response (project_id);
 CREATE INDEX ix_health_report_project ON health_report (project_id, created_at DESC);
 CREATE INDEX ix_health_report_details ON health_report USING GIN (alpha_details);
 
--- ─────────────────────────────────────────────
---  SEED DATA — OMG Essence v1.2 Kernel
--- ─────────────────────────────────────────────
+-- ============================================================
+--  SEED DATA — 7 Alphas del Kernel con estados y checklists
+-- ============================================================
 
--- 7 Alphas
-INSERT INTO alpha (id, name, area_of_concern, description) VALUES
-(1, 'Stakeholders',    'Customer', 'The people, groups, or organizations who affect or are affected by the software engineering endeavor.'),
-(2, 'Opportunity',     'Customer', 'The set of circumstances that makes it appropriate to develop or change a software system.'),
-(3, 'Requirements',    'Customer', 'What the software system must do to address the opportunity and satisfy the stakeholders.'),
-(4, 'Software System', 'Solution', 'A system made up of software, hardware, and data that provides its primary value by the execution of the software.'),
-(5, 'Team',            'Endeavor', 'The group of people actively engaged in the development, maintenance, delivery and support of a specific software system.'),
-(6, 'Work',            'Endeavor', 'Activity involving mental or physical effort done in order to achieve a result.'),
-(7, 'Way-of-Working',  'Endeavor', 'The tailored set of practices and tools used by a team to guide and support their work.');
+-- ── Alphas ───────────────────────────────────────────────────
+INSERT INTO alpha (id, name, area_of_concern, description)
+VALUES (1, 'Stakeholders', 'Customer', 'Personas, grupos u organizaciones que afectan o son afectadas por el sistema.'),
+       (2, 'Opportunity', 'Customer', 'Contexto que motiva el desarrollo; necesidad de negocio o problema a resolver.'),
+       (3, 'Requirements', 'Solution',
+        'Lo que el sistema debe hacer para satisfacer las necesidades de los stakeholders.'),
+       (4, 'Software System', 'Solution', 'El sistema software que se está desarrollando.'),
+       (5, 'Team', 'Endeavor', 'Grupo de personas que desarrollan y mantienen el sistema.'),
+       (6, 'Work', 'Endeavor', 'Actividad que involucra esfuerzo mental y/o físico para lograr el objetivo.'),
+       (7, 'Way-of-Working', 'Endeavor',
+        'Prácticas y herramientas acordadas que el equipo utiliza para guiar su trabajo.');
 
-SELECT setval(pg_get_serial_sequence('alpha', 'id'), 7);
+SELECT setval('alpha_id_seq', (SELECT MAX(id) FROM alpha));
 
--- ─── Alpha 1: Stakeholders (6 states) ───
+-- ── Alpha 1: Stakeholders ────────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (101, 1, 1, 'Recognized', 'Se han identificado los stakeholders.'),
+       (102, 1, 2, 'Represented', 'Los mecanismos de representación están acordados.'),
+       (103, 1, 3, 'Involved', 'Los representantes participan activamente.'),
+       (104, 1, 4, 'In Agreement', 'Los stakeholders están de acuerdo en continuar.'),
+       (105, 1, 5, 'Satisfied for Deployment', 'Los stakeholders están preparados para aceptar el sistema.'),
+       (106, 1, 6, 'Satisfied in Use', 'Los stakeholders están satisfechos con el sistema en producción.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(1,  1, 1, 'Recognized',                'Stakeholders have been identified and their involvement agreed.'),
-(2,  1, 2, 'Represented',               'Mechanisms to involve all stakeholders are in place.'),
-(3,  1, 3, 'Involved',                  'Stakeholder representatives are actively engaged in the work.'),
-(4,  1, 4, 'In Agreement',              'Stakeholders agree on the requirements and how they have been met.'),
-(5,  1, 5, 'Satisfied for Deployment',  'Stakeholders are satisfied with the system prior to deployment.'),
-(6,  1, 6, 'Satisfied in Use',          'Stakeholders are satisfied with the deployed and operational system.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (101, 'Stakeholders del sistema identificados'),
+       (102, 'Responsabilidades de representación acordadas'),
+       (102, 'Representantes con autoridad acordada'),
+       (102, 'Acuerdo sobre el proceso de toma de decisiones'),
+       (102, 'Representantes disponibles'),
+       (103, 'Representantes disponibles para aclarar dudas'),
+       (103, 'Representantes revisan y priorizan defectos'),
+       (104, 'Acuerdo sobre los requisitos de alto nivel'),
+       (104, 'Acuerdo sobre el alcance del próximo release'),
+       (104, 'Acuerdo sobre el release actual'),
+       (105, 'Stakeholders satisfechos con el progreso del trabajo'),
+       (105, 'Stakeholders de negocio satisfechos con el impacto'),
+       (106, 'Stakeholders del sistema satisfechos con el rendimiento'),
+       (106, 'Los stakeholders están satisfechos');
 
--- ─── Alpha 2: Opportunity (6 states) ───
+-- ── Alpha 2: Opportunity ─────────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (201, 2, 1, 'Identified', 'Se ha identificado la oportunidad.'),
+       (202, 2, 2, 'Solution Needed', 'Se necesita una solución de software.'),
+       (203, 2, 3, 'Value Established', 'El valor potencial de la solución está claro.'),
+       (204, 2, 4, 'Viable', 'Existe una solución viable.'),
+       (205, 2, 5, 'Addressed', 'La solución aborda la oportunidad.'),
+       (206, 2, 6, 'Benefit Accrued', 'Se han obtenido los beneficios esperados.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(7,  2, 1, 'Identified',       'An opportunity for a new or improved system has been identified.'),
-(8,  2, 2, 'Solution Needed',  'The need for a software-based solution has been established.'),
-(9,  2, 3, 'Value Established','The value a solution would provide has been established.'),
-(10, 2, 4, 'Viable',           'It is agreed that a solution can be produced within acceptable terms.'),
-(11, 2, 5, 'Addressed',        'A solution has been produced that demonstrably addresses the opportunity.'),
-(12, 2, 6, 'Benefit Accrued',  'The operational benefits are being accrued by the customer.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (201, 'Se ha identificado una oportunidad de mejora'),
+       (202, 'Al menos un stakeholder quiere aprovecharla'),
+       (202, 'Stakeholders de negocio identificados'),
+       (202, 'Al menos un stakeholder está comprometido'),
+       (203, 'El impacto negativo de no actuar está claro'),
+       (203, 'La solución es rentable'),
+       (204, 'Una solución puede entregarse y desplegarse'),
+       (204, 'Los principales riesgos están identificados'),
+       (204, 'Existe una viabilidad técnica razonable'),
+       (205, 'La solución satisface la necesidad de negocio'),
+       (205, 'El valor de la solución para el negocio está claro'),
+       (206, 'La solución produce el beneficio esperado'),
+       (206, 'La oportunidad ha sido aprovechada'),
+       (206, 'Los stakeholders están satisfechos con la solución');
 
--- ─── Alpha 3: Requirements (6 states) ───
+-- ── Alpha 3: Requirements ────────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (301, 3, 1, 'Conceived', 'Se conocen los requisitos de alto nivel.'),
+       (302, 3, 2, 'Bounded', 'El alcance del sistema está delimitado.'),
+       (303, 3, 3, 'Coherent', 'Los requisitos son coherentes.'),
+       (304, 3, 4, 'Acceptable', 'Los requisitos son aceptados por los stakeholders.'),
+       (305, 3, 5, 'Addressed', 'Los requisitos principales están siendo abordados.'),
+       (306, 3, 6, 'Fulfilled', 'Los requisitos están completamente satisfechos.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(13, 3, 1, 'Conceived',    'The need for a new system has been agreed.'),
-(14, 3, 2, 'Bounded',      'The purpose and scope of the new system are clear.'),
-(15, 3, 3, 'Coherent',     'Requirements consistently describe the essential characteristics of the system.'),
-(16, 3, 4, 'Acceptable',   'The requirements describe a system acceptable to the stakeholders.'),
-(17, 3, 5, 'Addressed',    'Sufficient requirements have been addressed to produce a usable system.'),
-(18, 3, 6, 'Fulfilled',    'The requirements fully satisfy the need for the system.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (301, 'Los stakeholders están de acuerdo con el alcance'),
+       (301, 'Los requisitos de alto nivel están identificados'),
+       (302, 'Restricciones de alto nivel identificadas'),
+       (302, 'Los mecanismos de almacenamiento están identificados'),
+       (302, 'El alcance del sistema está acordado con los stakeholders'),
+       (302, 'Restricciones técnicas y de negocio identificadas'),
+       (303, 'Los requisitos de mayor prioridad están determinados'),
+       (303, 'Los requisitos se correlacionan con las necesidades'),
+       (303, 'Los requisitos son testables'),
+       (304, 'Viabilidad técnica demostrada'),
+       (304, 'Los requisitos son lo suficientemente claros'),
+       (305, 'Todos los requisitos críticos abordados'),
+       (305, 'Los requisitos restantes acordados con stakeholders'),
+       (306, 'Los stakeholders aceptan los requisitos implementados'),
+       (306, 'El sistema satisface los requisitos');
 
--- ─── Alpha 4: Software System (6 states) ───
+-- ── Alpha 4: Software System ─────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (401, 4, 1, 'Architecture Selected', 'Se ha seleccionado la arquitectura.'),
+       (402, 4, 2, 'Demonstrable', 'El sistema puede ser demostrado.'),
+       (403, 4, 3, 'Usable', 'El sistema puede ser usado.'),
+       (404, 4, 4, 'Ready', 'El sistema está listo para desplegarse.'),
+       (405, 4, 5, 'Operational', 'El sistema está en operación.'),
+       (406, 4, 6, 'Retired', 'El sistema ha sido retirado de uso.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(19, 4, 1, 'Architecture Selected', 'An architecture has been selected that addresses the key technical risks.'),
-(20, 4, 2, 'Demonstrable',          'Key use cases of the system can be demonstrated.'),
-(21, 4, 3, 'Usable',                'The system is usable by all intended stakeholders.'),
-(22, 4, 4, 'Ready',                 'The system is ready for deployment.'),
-(23, 4, 5, 'Operational',           'The system is deployed and in use in an operational environment.'),
-(24, 4, 6, 'Retired',               'The system is no longer supported.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (401, 'Decisiones arquitectónicas tomadas'),
+       (401, 'Decisiones de compra-vs-construcción tomadas'),
+       (401, 'Riesgos arquitectónicos principales identificados'),
+       (402, 'Arquitectura implementada'),
+       (402, 'El sistema puede ejecutarse'),
+       (402, 'Componentes del sistema identificados'),
+       (402, 'Sistema integrable con otros sistemas'),
+       (403, 'El sistema es usable'),
+       (403, 'Funcionalidad de uso frecuente operativa'),
+       (403, 'Requisitos de accesibilidad cumplidos'),
+       (403, 'Sistema documentado'),
+       (404, 'Impacto sobre stakeholders aceptable'),
+       (404, 'Los defectos a corregir están acordados'),
+       (404, 'Actividades de despliegue preparadas'),
+       (405, 'El sistema está en producción'),
+       (405, 'Rendimiento operacional aceptable'),
+       (405, 'Vulnerabilidades de seguridad gestionadas'),
+       (406, 'El sistema ha sido retirado de producción'),
+       (406, 'Datos del sistema conservados según política'),
+       (406, 'Plan de reemplazamiento activo');
 
--- ─── Alpha 5: Team (5 states) ───
+-- ── Alpha 5: Team ────────────────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (501, 5, 1, 'Seeded', 'Se han identificado los miembros del equipo.'),
+       (502, 5, 2, 'Formed', 'El equipo está formado.'),
+       (503, 5, 3, 'Collaborating', 'El equipo está colaborando efectivamente.'),
+       (504, 5, 4, 'Performing', 'El equipo está rindiendo al máximo.'),
+       (505, 5, 5, 'Adjourned', 'El equipo ha finalizado su trabajo.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(25, 5, 1, 'Seeded',        'The team has been seeded with appropriate skills and competencies.'),
-(26, 5, 2, 'Formed',        'The team is ready to start the work.'),
-(27, 5, 3, 'Collaborating', 'The team members are working together as a team.'),
-(28, 5, 4, 'Performing',    'The team consistently delivers good results and meets its commitments.'),
-(29, 5, 5, 'Adjourned',     'The team is no longer accountable for the outcomes.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (501, 'Restricciones del equipo conocidas'),
+       (501, 'Mecanismos de crecimiento del equipo establecidos'),
+       (501, 'Responsabilidades y colaboraciones identificadas'),
+       (501, 'Facilitador identificado'),
+       (502, 'Miembros del equipo identificados'),
+       (502, 'Roles del equipo acordados'),
+       (502, 'Responsabilidades individuales acordadas'),
+       (502, 'Comunicaciones del equipo establecidas'),
+       (503, 'Normas de operación acordadas'),
+       (503, 'Acceso a recursos y herramientas asegurado'),
+       (503, 'Conflictos resueltos'),
+       (503, 'Trabajo coordinado eficientemente'),
+       (504, 'El equipo responde adaptando su forma de trabajar'),
+       (504, 'El equipo identifica y resuelve problemas'),
+       (504, 'El equipo logra su misión eficientemente'),
+       (505, 'El equipo se ha disuelto'),
+       (505, 'Miembros reconocidos por sus contribuciones'),
+       (505, 'Experiencias y conocimientos preservados');
 
--- ─── Alpha 6: Work (6 states) ───
+-- ── Alpha 6: Work ────────────────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (601, 6, 1, 'Initiated', 'El trabajo está preparado para comenzar.'),
+       (602, 6, 2, 'Prepared', 'El trabajo está preparado.'),
+       (603, 6, 3, 'Started', 'El trabajo ha comenzado.'),
+       (604, 6, 4, 'Under Control', 'El trabajo está bajo control.'),
+       (605, 6, 5, 'Concluded', 'El trabajo ha concluido.'),
+       (606, 6, 6, 'Closed', 'El trabajo está cerrado formalmente.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(30, 6, 1, 'Initiated',     'The work has been requested and the result required is clear.'),
-(31, 6, 2, 'Prepared',      'The work is ready to be started.'),
-(32, 6, 3, 'Started',       'The work is underway.'),
-(33, 6, 4, 'Under Control', 'The work is progressing well and is manageable.'),
-(34, 6, 5, 'Concluded',     'All work to produce the key artifacts has been completed.'),
-(35, 6, 6, 'Closed',        'All outstanding commitments have been met.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (601, 'Las partes involucradas están de acuerdo en iniciar'),
+       (601, 'El enfoque del trabajo está acordado'),
+       (601, 'Los criterios de aceptación están acordados'),
+       (601, 'Restricciones y riesgos conocidos'),
+       (602, 'Estimaciones del trabajo disponibles'),
+       (602, 'Plan publicado y disponible'),
+       (602, 'Trabajo organizado para su ejecución'),
+       (602, 'Medios de financiación confirmados'),
+       (603, 'Desarrollo comenzado'),
+       (603, 'Actividades de prueba comenzadas'),
+       (603, 'Elementos de trabajo gestionados'),
+       (604, 'El trabajo sigue el plan acordado'),
+       (604, 'El desvío de las estimaciones está controlado'),
+       (604, 'Riesgos bajo control'),
+       (604, 'Replanificación cuando es necesario'),
+       (605, 'Criterios de aceptación cumplidos'),
+       (605, 'Stakeholders satisfechos'),
+       (606, 'Contrato cerrado'),
+       (606, 'Trabajo final aceptado'),
+       (606, 'Experiencias documentadas');
 
--- ─── Alpha 7: Way-of-Working (6 states) ───
+-- ── Alpha 7: Way-of-Working ──────────────────────────────────
+INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description)
+VALUES (701, 7, 1, 'Principles Established', 'Se han establecido los principios de trabajo.'),
+       (702, 7, 2, 'Foundation Established', 'Los fundamentos de la forma de trabajar están establecidos.'),
+       (703, 7, 3, 'In Use', 'La forma de trabajar está siendo usada.'),
+       (704, 7, 4, 'In Place', 'La forma de trabajar está asentada.'),
+       (705, 7, 5, 'Working Well', 'La forma de trabajar está funcionando bien.'),
+       (706, 7, 6, 'Retired', 'La forma de trabajar ha sido retirada.');
 
-INSERT INTO alpha_state (id, alpha_id, state_number, state_name, description) VALUES
-(36, 7, 1, 'Principles Established', 'Principles and constraints shaping the way-of-working are established.'),
-(37, 7, 2, 'Foundation Established', 'The key practices and tools forming the foundation are established.'),
-(38, 7, 3, 'In Use',                 'The way-of-working is in use by the team to do real work.'),
-(39, 7, 4, 'In Place',               'The way-of-working is well established and consistently followed.'),
-(40, 7, 5, 'Working Well',           'The way-of-working is working well for the team.'),
-(41, 7, 6, 'Retired',                'The way-of-working is no longer in use by the team.');
+INSERT INTO state_checklist (alpha_state_id, criterion_text)
+VALUES (701, 'Necesidades del equipo identificadas'),
+       (701, 'Principios y restricciones del equipo identificados'),
+       (701, 'Prácticas candidatas identificadas'),
+       (701, 'Herramientas candidatas identificadas'),
+       (702, 'Enfoque acordado con los stakeholders'),
+       (702, 'Herramientas clave acordadas'),
+       (702, 'Responsabilidades acordadas'),
+       (702, 'Manera de trabajar formada y comunicada'),
+       (703, 'Prácticas clave acordadas'),
+       (703, 'Herramientas en uso regularmente'),
+       (703, 'Uso monitoreado'),
+       (704, 'Manera de trabajar usada por todos'),
+       (704, 'Dificultades gestionadas'),
+       (705, 'Necesidades del equipo cubiertas'),
+       (705, 'Mejoras identificadas incorporadas'),
+       (705, 'Inspecciones y adaptaciones regulares'),
+       (706, 'Equipo reconoce que ya no necesita esta forma de trabajar'),
+       (706, 'Experiencias documentadas para futuras referencias');
 
-SELECT setval(pg_get_serial_sequence('alpha_state', 'id'), 41);
-
--- ─────────────────────────────────────────────
---  CHECKLISTS (IDs start at 1001)
--- ─────────────────────────────────────────────
-
--- Stakeholders — State 1: Recognized
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1001, 1, 'All stakeholder groups that are, or will be, affected by the development have been identified.'),
-(1002, 1, 'There is agreement on the stakeholder groups to be represented.'),
-(1003, 1, 'The responsibilities of the stakeholder representatives have been defined.');
-
--- Stakeholders — State 2: Represented
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1004, 2, 'The mechanisms for involving the stakeholders and their representatives have been agreed upon.'),
-(1005, 2, 'The stakeholder representatives have been identified.'),
-(1006, 2, 'The stakeholder representatives have agreed to take on their responsibilities.');
-
--- Stakeholders — State 3: Involved
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1007, 3, 'The stakeholder representatives are actively involved in the work.'),
-(1008, 3, 'The stakeholder representatives and the team are aligned on the expectations for the system.'),
-(1009, 3, 'The stakeholder representatives provide feedback and take part in decision-making in a timely manner.');
-
--- Stakeholders — State 4: In Agreement
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1010, 4, 'The stakeholder representatives are in agreement with the requirements as captured.'),
-(1011, 4, 'The stakeholder representatives are in agreement with how their input has been used.'),
-(1012, 4, 'All concerns raised by the stakeholders have been addressed.');
-
--- Stakeholders — State 5: Satisfied for Deployment
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1013, 5, 'The stakeholder representatives are satisfied with the system as deployed.'),
-(1014, 5, 'The system has passed the appropriate acceptance tests.'),
-(1015, 5, 'Feedback from the stakeholders on the system has been addressed.');
-
--- Stakeholders — State 6: Satisfied in Use
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1016, 6, 'Stakeholders are actively using the system and are satisfied with it.'),
-(1017, 6, 'The stakeholders are getting the business benefits expected of the system.'),
-(1018, 6, 'Issues raised during use have been addressed.');
-
--- Opportunity — State 1: Identified
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1019, 7, 'An idea for improving current ways of working or applying a new software system has been identified.'),
-(1020, 7, 'At least one stakeholder wishes to invest in better understanding the opportunity.'),
-(1021, 7, 'The other stakeholders who may be affected have been identified.');
-
--- Opportunity — State 2: Solution Needed
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1022, 8, 'The need for a software-based solution has been confirmed.'),
-(1023, 8, 'At least one possible solution has been identified.'),
-(1024, 8, 'The key stakeholders required for the solution are known.');
-
--- Opportunity — State 3: Value Established
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1025, 9, 'The value of a successful solution has been established.'),
-(1026, 9, 'The success criteria by which the opportunity will be judged have been agreed upon.'),
-(1027, 9, 'The size of the opportunity has been established.');
-
--- Opportunity — State 4: Viable
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1028, 10, 'A solution has been outlined.'),
-(1029, 10, 'The solution can be developed and deployed within acceptable time, risk and cost.'),
-(1030, 10, 'The risks associated with the opportunity have been identified and are manageable.');
-
--- Opportunity — State 5: Addressed
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1031, 11, 'A solution has been developed that demonstrably addresses the opportunity.'),
-(1032, 11, 'The stakeholder representatives confirm that the solution addresses the opportunity.'),
-(1033, 11, 'The business case, if required, has been updated.');
-
--- Opportunity — State 6: Benefit Accrued
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1034, 12, 'The system has been made available to the stakeholders and they are getting the benefits.'),
-(1035, 12, 'The return on investment has been achieved, or is on track to be achieved.'),
-(1036, 12, 'The opportunity is no longer driving development of the system.');
-
--- Requirements — State 1: Conceived
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1037, 13, 'The need for a new system has been agreed.'),
-(1038, 13, 'The proposed system has been described.'),
-(1039, 13, 'The key stakeholders for the new system have been identified.');
-
--- Requirements — State 2: Bounded
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1040, 14, 'The purpose and theme of the new system are clear.'),
-(1041, 14, 'The system to be produced has been scoped.'),
-(1042, 14, 'Requirements exist that define the most important features and functions of the system.');
-
--- Requirements — State 3: Coherent
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1043, 15, 'Requirements provide a consistent description of the essential characteristics of the system.'),
-(1044, 15, 'The requirements adequately reflect the business needs of the stakeholders.'),
-(1045, 15, 'The priority of the requirements has been established.');
-
--- Requirements — State 4: Acceptable
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1046, 16, 'The requirements describe a system that is acceptable to the stakeholders.'),
-(1047, 16, 'The rate of change to the agreed requirements is low and under control.'),
-(1048, 16, 'Stakeholder acceptance criteria for the system are clear.');
-
--- Requirements — State 5: Addressed
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1049, 17, 'Sufficient requirements have been addressed to produce a usable system.'),
-(1050, 17, 'The system can be operated and supported based on the requirements addressed.'),
-(1051, 17, 'The stakeholders accept the requirements as addressed.');
-
--- Requirements — State 6: Fulfilled
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1052, 18, 'The system fully addresses the requirements as agreed with the stakeholders.'),
-(1053, 18, 'There are no gaps in the requirements met by the system.'),
-(1054, 18, 'The stakeholders confirm that the requirements have been fulfilled.');
-
--- Software System — State 1: Architecture Selected
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1055, 19, 'The criteria to be used when selecting the architecture have been agreed on.'),
-(1056, 19, 'Hardware platforms have been identified.'),
-(1057, 19, 'Programming languages and technologies to be used have been selected.');
-
--- Software System — State 2: Demonstrable
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1058, 20, 'Key use cases of the system can be demonstrated.'),
-(1059, 20, 'The system can be operated by stakeholders focused on the quality of the key use cases.'),
-(1060, 20, 'The architecture of the system has been validated.');
-
--- Software System — State 3: Usable
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1061, 21, 'The system can be operated by all intended stakeholders.'),
-(1062, 21, 'All key quality characteristics are sufficiently addressed for the system to be used.'),
-(1063, 21, 'The system has been accepted for operational use by all stakeholders.');
-
--- Software System — State 4: Ready
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1064, 22, 'The system is ready for deployment.'),
-(1065, 22, 'All defects preventing deployment have been removed.'),
-(1066, 22, 'The stakeholders have accepted the system for deployment.');
-
--- Software System — State 5: Operational
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1067, 23, 'The system has been deployed and is in use in an operational environment.'),
-(1068, 23, 'The system is available for use by the stakeholders.'),
-(1069, 23, 'Agreed service levels are being met.');
-
--- Software System — State 6: Retired
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1070, 24, 'The system has been replaced or discontinued.'),
-(1071, 24, 'The system is no longer supported.'),
-(1072, 24, 'All stakeholders have been notified of the retirement.');
-
--- Team — State 1: Seeded
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1073, 25, 'The team''s mission is clear even if details are not fully defined.'),
-(1074, 25, 'Enough staff are available to start the work.'),
-(1075, 25, 'The skills needed to perform the work are identified.');
-
--- Team — State 2: Formed
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1076, 26, 'Individual responsibilities are understood.'),
-(1077, 26, 'Team members are accepting work.'),
-(1078, 26, 'The team is ready to accept new work.');
-
--- Team — State 3: Collaborating
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1079, 27, 'The team members know each other.'),
-(1080, 27, 'The team members trust each other.'),
-(1081, 27, 'Team communication is open and honest.');
-
--- Team — State 4: Performing
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1082, 28, 'The team consistently meets its commitments.'),
-(1083, 28, 'The team continually adapts to the changing context.'),
-(1084, 28, 'The team identifies and addresses problems without outside help.');
-
--- Team — State 5: Adjourned
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1085, 29, 'The team has been officially disbanded.'),
-(1086, 29, 'The team members have been reassigned to other duties or have left the organization.'),
-(1087, 29, 'Lessons learned have been communicated and documented.');
-
--- Work — State 1: Initiated
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1088, 30, 'The result required of the work is clear.'),
-(1089, 30, 'Any constraints on the work are clearly identified.'),
-(1090, 30, 'The stakeholders that fund the work are known.');
-
--- Work — State 2: Prepared
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1091, 31, 'Commitment is made.'),
-(1092, 31, 'The required funds are secured.'),
-(1093, 31, 'The work is broken down sufficiently for productive work to start.');
-
--- Work — State 3: Started
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1094, 32, 'Development work has been started.'),
-(1095, 32, 'Work progress is monitored.'),
-(1096, 32, 'The team is working on agreed deliverables.');
-
--- Work — State 4: Under Control
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1097, 33, 'Work is going well against its target progress.'),
-(1098, 33, 'Remaining work is understood and manageable.'),
-(1099, 33, 'Work progress is monitored at appropriate intervals.');
-
--- Work — State 5: Concluded
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1100, 34, 'All work to produce the system''s key artifacts has been completed.'),
-(1101, 34, 'The transition to the next phase of work, or to operations, has been made.'),
-(1102, 34, 'Lessons learned have been documented and shared.');
-
--- Work — State 6: Closed
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1103, 35, 'All outstanding commitments have been met or their disposition has been agreed with stakeholders.'),
-(1104, 35, 'The team has been disbanded or reallocated.'),
-(1105, 35, 'Any outstanding financial matters have been resolved.');
-
--- Way-of-Working — State 1: Principles Established
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1106, 36, 'Principles and constraints that shape the way-of-working are established.'),
-(1107, 36, 'The team follows the principles established.'),
-(1108, 36, 'The practices to follow are agreed on by the team.');
-
--- Way-of-Working — State 2: Foundation Established
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1109, 37, 'The key practices and tools that form the foundation of the way of working are established.'),
-(1110, 37, 'The team commits to working in accordance with the way-of-working.'),
-(1111, 37, 'Enough practices for work to begin are in place.');
-
--- Way-of-Working — State 3: In Use
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1112, 38, 'The way-of-working is in use by the team to do real work.'),
-(1113, 38, 'All team members are using the way-of-working to accomplish their work.'),
-(1114, 38, 'The effectiveness of the way-of-working is being assessed.');
-
--- Way-of-Working — State 4: In Place
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1115, 39, 'The team''s way of working is well established and understood.'),
-(1116, 39, 'The way-of-working is continuously updated and improved.'),
-(1117, 39, 'Deviations from the way-of-working are addressed.');
-
--- Way-of-Working — State 5: Working Well
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1118, 40, 'The team''s way of working is working well for the team.'),
-(1119, 40, 'Continuous improvement of the way-of-working is in place.'),
-(1120, 40, 'The way-of-working is consistently followed by the team.');
-
--- Way-of-Working — State 6: Retired
-INSERT INTO state_checklist (id, alpha_state_id, criterion_text) VALUES
-(1121, 41, 'The way-of-working is no longer in use by the team.'),
-(1122, 41, 'The practices and tools used are no longer needed.'),
-(1123, 41, 'Lessons learned from using the way-of-working have been documented.');
-
-SELECT setval(pg_get_serial_sequence('state_checklist', 'id'), 1123);
+-- Resetear secuencias tras INSERTs con IDs explícitos
+SELECT setval('alpha_state_id_seq', (SELECT MAX(id) FROM alpha_state));
