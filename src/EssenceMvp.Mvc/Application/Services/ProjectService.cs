@@ -97,7 +97,7 @@ public class ProjectService : IProjectService
 
     // Devuelve todos los checklists de un Alpha, combinando la estructura (preguntas)
     // con las respuestas del proyecto para indicar cuáles están cumplidos (true/false)
-    public async Task<List<(int Id, string CriterionText, bool IsAchieved)>> GetAlphaChecklistsAsync(int projectId,
+    public async Task<List<AlphaChecklistDto>> GetAlphaChecklistsAsync(int projectId,
         int alphaId)
     {
         var alpha = await _db.Alphas
@@ -112,16 +112,32 @@ public class ProjectService : IProjectService
             .Where(r => r.ProjectId == projectId)
             .ToListAsync();
 
-        var result = new List<(int Id, string CriterionText, bool IsAchieved)>();
+        var result = new List<AlphaChecklistDto>();
 
-        // Itera estados ordenados y sus checklists
+        // Itera estados ordenados y agrupa checklists por estado
         foreach (var state in alpha.States.OrderBy(s => s.StateNumber))
         {
+            var stateCriteria = new List<ChecklistCriterionDto>();
+
             foreach (var checklist in state.Checklists)
             {
                 var response = responses.FirstOrDefault(r => r.StateChecklistId == checklist.Id);
-                // IsAchieved: true si existe respuesta anterior y está marcada, false si no existe
-                result.Add((checklist.Id, checklist.CriterionText, response?.IsAchieved ?? false));
+                stateCriteria.Add(new ChecklistCriterionDto
+                {
+                    Id = checklist.Id,
+                    CriterionText = checklist.CriterionText,
+                    IsAchieved = response?.IsAchieved ?? false
+                });
+            }
+
+            if (stateCriteria.Count > 0)
+            {
+                result.Add(new AlphaChecklistDto
+                {
+                    StateNumber = state.StateNumber,
+                    StateName = state.StateName,
+                    Criteria = stateCriteria
+                });
             }
         }
 

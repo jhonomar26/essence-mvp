@@ -1,4 +1,4 @@
-@model (int ProjectId, int AlphaId, string AlphaName, List<(int Id, string CriterionText, bool IsAchieved)> Checklists)
+@model (int ProjectId, int AlphaId, string AlphaName, List<AlphaChecklistDto> Checklists)
 
 <div class="modal fade" id="evaluateAlphaModal_@Model.AlphaId" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -14,23 +14,31 @@
 
                     @if (Model.Checklists.Any())
                     {
-                        <div class="list-group list-group-flush">
-                            @foreach (var (id, text, isAchieved) in Model.Checklists)
-                            {
-                                <div class="list-group-item d-flex align-items-start gap-2">
-                                    <input type="checkbox"
-                                           class="form-check-input mt-1"
-                                           id="checklist_@id"
-                                           name="answers[@(Model.Checklists.IndexOf((id, text, isAchieved)))].StateChecklistId"
-                                           value="@id"
-                                           data-checklist-id="@id"
-                                           @(isAchieved ? "checked" : "") />
-                                    <label for="checklist_@id" class="form-check-label flex-grow-1 mb-0">
-                                        @text
-                                    </label>
+                        @foreach (var stateChecklist in Model.Checklists)
+                        {
+                            <div class="mb-4">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <span class="badge bg-info text-dark me-2">Estado @stateChecklist.StateNumber</span>
+                                    @stateChecklist.StateName
+                                </h6>
+                                <div class="list-group list-group-flush">
+                                    @foreach (var criterion in stateChecklist.Criteria)
+                                    {
+                                        <div class="list-group-item d-flex align-items-start gap-2">
+                                            <input type="checkbox"
+                                                   class="form-check-input mt-1"
+                                                   id="checklist_@criterion.Id"
+                                                   value="@criterion.Id"
+                                                   data-checklist-id="@criterion.Id"
+                                                   @(criterion.IsAchieved ? "checked" : "") />
+                                            <label for="checklist_@criterion.Id" class="form-check-label flex-grow-1 mb-0">
+                                                @criterion.CriterionText
+                                            </label>
+                                        </div>
+                                    }
                                 </div>
-                            }
-                        </div>
+                            </div>
+                        }
                     }
                     else
                     {
@@ -56,11 +64,11 @@ function submitEvaluation(e, alphaId) {
 
     // Recopila estado de todos los checkboxes
     const answers = [];
-    document.querySelectorAll(`#evalForm_${alphaId} input[type="checkbox"]`).forEach(cb => {
+    document.querySelectorAll(`#evalForm_${alphaId} input[type="checkbox"][data-checklist-id]`).forEach(cb => {
         const checklistId = parseInt(cb.dataset.checklistId);
         answers.push({
             stateChecklistId: checklistId,
-            isAchieved: cb.checked,  // true si está marcado, false si no
+            isAchieved: cb.checked,
             notes: null
         });
     });

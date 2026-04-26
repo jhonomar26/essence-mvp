@@ -14,9 +14,10 @@ public class HealthCalculationService : IHealthCalculationService
     }
 
     // SEMAT Essence Health Calculation:
-    // 1. Progress: (currentState / maxStates) * 100 per Alpha
-    // 2. Average: mean of all Alpha progresses
-    // 3. Dispersion: max(progress) - min(progress)
+    // 1. Progress: (currentState / maxStates) * 100 per Alpha (each alpha)
+    // 2. Average: mean of all Alpha progresses 
+    // 3. Dispersion: max(
+    // ) - min(progress)
     // 4. Penalty: dispersion * 0.2
     // 5. HealthScore: avg - penalty
     // 6. Classification: 80-100 SALUDABLE, 60-79 ACEPTABLE, 40-59 EN RIESGO, 0-39 CRÍTICO

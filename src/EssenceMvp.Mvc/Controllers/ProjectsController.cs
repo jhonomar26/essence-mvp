@@ -10,16 +10,14 @@ namespace EssenceMvp.Mvc.Controllers;
 public class ProjectsController : Controller
 {
     private readonly IProjectService _projects;
-    private readonly IAlphaService _alphas;
     private readonly IHealthService _health;
-    private readonly IHealthCalculationService _healthCalc;
+    private readonly IProjectDetailComposerService _detailComposer;
 
-    public ProjectsController(IProjectService projects, IAlphaService alphas, IHealthService health, IHealthCalculationService healthCalc)
+    public ProjectsController(IProjectService projects, IHealthService health, IProjectDetailComposerService detailComposer)
     {
         _projects = projects;
-        _alphas = alphas;
         _health = health;
-        _healthCalc = healthCalc;
+        _detailComposer = detailComposer;
     }
 
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -56,36 +54,11 @@ public class ProjectsController : Controller
 
     public async Task<IActionResult> Detail(int id)
     {
-        var project = await _projects.GetProjectDetailAsync(id, UserId);
-        if (project == null) return NotFound();
+        var result = await _detailComposer.GetProjectDetailAsync(id, UserId);
+        if (result == null) return NotFound();
 
-        var alphaProgress = await _alphas.GetProjectAlphaProgressAsync(id, UserId);
-        var healthStatus = await _health.CalculateHealthAsync(id, UserId);
-        var healthScore = await _healthCalc.CalculateProjectHealthAsync(id);
-
-        // Load checklists for each alpha to pass to modals
-        var alphaChecklists = new Dictionary<int, List<(int Id, string CriterionText, bool IsAchieved)>>();
-        foreach (var alpha in alphaProgress)
-        {
-            alphaChecklists[alpha.AlphaId] = await _projects.GetAlphaChecklistsAsync(id, alpha.AlphaId);
-        }
-
-        ViewBag.AlphaChecklists = alphaChecklists;
-
-        var vm = new ProjectDetailViewModel
-        {
-            Id = project.Id,
-            Name = project.Name,
-            Description = project.Description,
-            Phase = project.Phase,
-            OverallHealth = healthStatus,
-            HealthScore = healthScore.HealthScore,
-            HealthClassification = healthScore.Classification,
-            AverageProgress = healthScore.AverageProgress,
-            ProgressDispersion = healthScore.ProgressDispersion,
-            AlphaProgress = alphaProgress
-        };
-        return View(vm);
+        ViewBag.AlphaChecklists = result.AlphaChecklists;
+        return View(result.ViewModel);
     }
 
     [HttpPost]

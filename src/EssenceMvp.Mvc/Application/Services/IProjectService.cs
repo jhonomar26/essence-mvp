@@ -10,6 +10,6 @@ public interface IProjectService
     Task<Project?> GetProjectDetailAsync(int projectId, int userId);
     Task<bool> DeleteProjectAsync(int projectId, int userId);
     Task SaveChecklistResponsesAsync(int projectId, List<(int stateChecklistId, bool isAchieved, string? notes)> responses);
-    Task<List<(int Id, string CriterionText, bool IsAchieved)>> GetAlphaChecklistsAsync(int projectId, int alphaId);
+    Task<List<AlphaChecklistDto>> GetAlphaChecklistsAsync(int projectId, int alphaId);
     Task<AlphaStateResult> GetAlphaCurrentStateAsync(int projectId, int alphaId);
 }

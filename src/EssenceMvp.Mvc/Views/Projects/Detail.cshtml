@@ -35,7 +35,7 @@
     <div class="text-center ms-4">
         <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px; min-width: 120px;">
             <div style="font-size: 2.5rem; font-weight: bold; color: #212529;">
-                @Model.HealthScore.ToString("F1")
+                @Model.HealthScore.ToString("F1")%
             </div>
             <small class="d-block mt-1 fw-semibold text-primary">@Model.HealthClassification</small>
             <div class="semaforo @healthBg @healthText" style="margin-top: 0.5rem; font-size: 1rem;">
@@ -48,7 +48,7 @@
 
 <div class="alert alert-info" role="alert">
     <strong>SEMAT Essence Health Score:</strong> Promedio de progreso Alphas: @Model.AverageProgress.ToString("F1")%
-    • Dispersión: @Model.ProgressDispersion.ToString("F1")% • Penalización: @(Math.Round(Model.ProgressDispersion * 0.2m, 2))
+    • Dispersión: @Model.ProgressDispersion.ToString("F1")% • Penalización: @(Math.Round(Model.ProgressDispersion * 0.2m, 2))%
 </div>
 
 <h5 class="mb-3 text-muted fw-semibold">
@@ -110,7 +110,7 @@
 
 @* Modales de evaluación *@
 @{
-    var alphaChecklists = (Dictionary<int, List<(int Id, string CriterionText, bool IsAchieved)>>)ViewBag.AlphaChecklists;
+    var alphaChecklists = (Dictionary<int, List<AlphaChecklistDto>>)ViewBag.AlphaChecklists;
     if (alphaChecklists != null)
     {
         foreach (var alpha in Model.AlphaProgress)
