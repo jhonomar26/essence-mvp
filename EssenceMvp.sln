@@ -1,22 +1,27 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-#
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DC4F7E5C-B7BD-45B8-BC5F-6FC7C6FF4B53}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Mvc", "src\EssenceMvp.Mvc\EssenceMvp.Mvc.csproj", "{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Mvc", "src\EssenceMvp.Mvc\EssenceMvp.Mvc.csproj", "{11060717-F1FF-426B-A932-2F1D6128D61A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11060717-F1FF-426B-A932-2F1D6128D61A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11060717-F1FF-426B-A932-2F1D6128D61A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11060717-F1FF-426B-A932-2F1D6128D61A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11060717-F1FF-426B-A932-2F1D6128D61A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1DE260E4-B3B6-4FCD-A3A2-86CF2E189390} = {DC4F7E5C-B7BD-45B8-BC5F-6FC7C6FF4B53}
+		{11060717-F1FF-426B-A932-2F1D6128D61A} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
 	EndGlobalSection
 EndGlobal
