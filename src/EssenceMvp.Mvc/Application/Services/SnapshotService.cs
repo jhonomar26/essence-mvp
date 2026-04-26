@@ -49,9 +49,9 @@ public class SnapshotService : ISnapshotService
 
         var globalStatus = healthScore.HealthScore switch
         {
-            >= 80 => HealthStatus.Green,
-            >= 60 => HealthStatus.Yellow,
-            _ => HealthStatus.Red
+            >= 80 => HealthStatus.green,
+            >= 60 => HealthStatus.yellow,
+            _ => HealthStatus.red
         };
 
         var healthReport = new HealthReport

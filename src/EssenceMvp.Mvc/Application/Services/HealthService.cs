@@ -21,16 +21,16 @@ public class HealthService : IHealthService
         var project = await _db.Projects
             .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
 
-        if (project == null) return HealthStatus.Red;
+        if (project == null) return HealthStatus.red;
 
         var healthScore = await _healthCalcService.CalculateProjectHealthAsync(projectId);
 
         return healthScore.HealthScore switch
         {
-            >= 80 => HealthStatus.Green,      // SALUDABLE
-            >= 60 => HealthStatus.Yellow,     // ACEPTABLE
-            >= 40 => HealthStatus.Yellow,     // EN RIESGO
-            _ => HealthStatus.Red             // CRÍTICO
+            >= 80 => HealthStatus.green,      // SALUDABLE
+            >= 60 => HealthStatus.yellow,     // ACEPTABLE
+            >= 40 => HealthStatus.yellow,     // EN RIESGO
+            _ => HealthStatus.red             // CRÍTICO
         };
     }
 }
