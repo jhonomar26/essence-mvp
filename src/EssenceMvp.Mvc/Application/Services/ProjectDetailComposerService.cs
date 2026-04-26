@@ -30,7 +30,7 @@ public class ProjectDetailComposerService : IProjectDetailComposerService
         var healthStatus = await _health.CalculateHealthAsync(projectId, userId);
         var healthScore = await _healthCalc.CalculateProjectHealthAsync(projectId);
         // 3. CARGAR CHECKLISTS DINÁMICAMENTE
-        var alphaChecklists = new Dictionary<int, List<(int Id, string CriterionText, bool IsAchieved)>>();
+        var alphaChecklists = new Dictionary<int, List<AlphaChecklistDto>>();
         foreach (var alpha in alphaProgress)
         {
             alphaChecklists[alpha.AlphaId] = await _projects.GetAlphaChecklistsAsync(projectId, alpha.AlphaId);
