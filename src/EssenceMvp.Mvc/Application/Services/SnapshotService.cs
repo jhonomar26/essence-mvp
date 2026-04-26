@@ -125,4 +125,22 @@ public class SnapshotService : ISnapshotService
 
         return result;
     }
+
+    public async Task DeleteSnapshotAsync(int snapshotId, int projectId, int userId)
+    {
+        var project = await _db.Projects
+            .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
+
+        if (project == null)
+            throw new UnauthorizedAccessException("Project not found or access denied");
+
+        var snapshot = await _db.HealthReports
+            .FirstOrDefaultAsync(r => r.Id == snapshotId && r.ProjectId == projectId);
+
+        if (snapshot == null)
+            throw new InvalidOperationException("Snapshot not found");
+
+        _db.HealthReports.Remove(snapshot);
+        await _db.SaveChangesAsync();
+    }
 }

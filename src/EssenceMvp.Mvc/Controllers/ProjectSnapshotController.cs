@@ -46,4 +46,22 @@ public class ProjectSnapshotController : ControllerBase
             return Forbid();
         }
     }
+
+    [HttpDelete("{snapshotId}")]
+    public async Task<IActionResult> Delete(int projectId, int snapshotId)
+    {
+        try
+        {
+            await _snapshotService.DeleteSnapshotAsync(snapshotId, projectId, UserId);
+            return Ok();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
 }
