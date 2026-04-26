@@ -30,6 +30,10 @@ public class ProjectDetailViewModel
     public string? Description { get; set; }
     public string? Phase { get; set; }
     public HealthStatus OverallHealth { get; set; }
+    public decimal HealthScore { get; set; }
+    public string HealthClassification { get; set; } = "";
+    public decimal AverageProgress { get; set; }
+    public decimal ProgressDispersion { get; set; }
     public List<AlphaProgressDto> AlphaProgress { get; set; } = new();
 }
 
@@ -39,8 +43,7 @@ public class AlphaProgressDto
     public string AlphaName { get; set; } = "";
     public string AreaOfConcern { get; set; } = "";
     public short CurrentStateNumber { get; set; }
-    public int TotalStates { get; set; }
+    public short MaxStateNumber { get; set; }
     public string CurrentStateName { get; set; } = "";
-    public double CompletionPercent { get; set; }
-    public HealthStatus AlphaHealth { get; set; }
+    public decimal Progress { get; set; }
 }

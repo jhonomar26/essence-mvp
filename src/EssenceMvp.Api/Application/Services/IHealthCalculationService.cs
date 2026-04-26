@@ -1,6 +1,8 @@
+using EssenceMvp.Api.Features;
+
 namespace EssenceMvp.Api.Application.Services;
 
 public interface IHealthCalculationService
 {
-    Task<string> CalculateAsync(int projectId);
+    Task<ProjectHealthScoreDto> CalculateProjectHealthAsync(int projectId);
 }

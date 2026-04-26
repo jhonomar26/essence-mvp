@@ -23,3 +23,21 @@ public sealed class StateChecklistDto
     public string CriterionText { get; init; } = null!;
     public bool IsMandatory { get; init; }
 }
+
+public sealed class ProjectHealthScoreDto
+{
+    public decimal HealthScore { get; init; }
+    public string Classification { get; init; } = "";
+    public decimal AverageProgress { get; init; }
+    public decimal ProgressDispersion { get; init; }
+    public List<AlphaProgressDetailDto> AlphaProgresses { get; init; } = new();
+}
+
+public sealed class AlphaProgressDetailDto
+{
+    public int AlphaId { get; init; }
+    public string AlphaName { get; init; } = "";
+    public short CurrentStateNumber { get; init; }
+    public short MaxStateNumber { get; init; }
+    public decimal Progress { get; init; }
+}

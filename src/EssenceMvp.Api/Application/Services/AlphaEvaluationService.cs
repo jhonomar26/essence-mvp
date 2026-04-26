@@ -12,6 +12,8 @@ public class AlphaEvaluationService : IAlphaEvaluationService
         _db = db;
     }
 
+    // SEMAT Essence: Alpha in state N only if ALL checklists of states 1..N are satisfied.
+    // Iterates ordered states. Stops at first incomplete state (binary sequential logic).
     public async Task<AlphaStateResult> CalculateAsync(int projectId, int alphaId)
     {
         var alpha = await _db.Alphas
@@ -20,9 +22,10 @@ public class AlphaEvaluationService : IAlphaEvaluationService
             .FirstOrDefaultAsync(a => a.Id == alphaId);
 
         if (alpha == null)
-            return new AlphaStateResult(0, "Not Found");
+            return new AlphaStateResult(0, "Not Found", 0);
 
-        var states = alpha.States.OrderBy(s => s.StateNumber);
+        var states = alpha.States.OrderBy(s => s.StateNumber).ToList();
+        short maxStateNumber = (short)states.Count;
 
         short current = 0;
         string name = "Not Started";
@@ -46,6 +49,6 @@ public class AlphaEvaluationService : IAlphaEvaluationService
             name = state.StateName;
         }
 
-        return new AlphaStateResult(current, name);
+        return new AlphaStateResult(current, name, maxStateNumber);
     }
 }

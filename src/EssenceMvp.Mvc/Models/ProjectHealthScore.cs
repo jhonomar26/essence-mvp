@@ -1,14 +1,14 @@
-﻿namespace EssenceMvp.Mvc.Models;
+namespace EssenceMvp.Mvc.Models;
 
-public class HealthResult
+public class ProjectHealthScore
 {
     public decimal HealthScore { get; set; }
     public string Classification { get; set; } = "";
     public decimal AverageProgress { get; set; }
     public decimal ProgressDispersion { get; set; }
-    public List<AlphaDetail> AlphaDetails { get; set; } = new();
+    public List<AlphaProgressDetail> AlphaProgresses { get; set; } = new();
 
-    public class AlphaDetail
+    public class AlphaProgressDetail
     {
         public int AlphaId { get; set; }
         public string AlphaName { get; set; } = "";

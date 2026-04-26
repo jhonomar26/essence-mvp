@@ -12,12 +12,14 @@ public class ProjectsController : Controller
     private readonly IProjectService _projects;
     private readonly IAlphaService _alphas;
     private readonly IHealthService _health;
+    private readonly IHealthCalculationService _healthCalc;
 
-    public ProjectsController(IProjectService projects, IAlphaService alphas, IHealthService health)
+    public ProjectsController(IProjectService projects, IAlphaService alphas, IHealthService health, IHealthCalculationService healthCalc)
     {
         _projects = projects;
         _alphas = alphas;
         _health = health;
+        _healthCalc = healthCalc;
     }
 
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -58,7 +60,8 @@ public class ProjectsController : Controller
         if (project == null) return NotFound();
 
         var alphaProgress = await _alphas.GetProjectAlphaProgressAsync(id, UserId);
-        var health = await _health.CalculateHealthAsync(id, UserId);
+        var healthStatus = await _health.CalculateHealthAsync(id, UserId);
+        var healthScore = await _healthCalc.CalculateProjectHealthAsync(id);
 
         // Load checklists for each alpha to pass to modals
         var alphaChecklists = new Dictionary<int, List<(int Id, string CriterionText, bool IsAchieved)>>();
@@ -75,7 +78,11 @@ public class ProjectsController : Controller
             Name = project.Name,
             Description = project.Description,
             Phase = project.Phase,
-            OverallHealth = health,
+            OverallHealth = healthStatus,
+            HealthScore = healthScore.HealthScore,
+            HealthClassification = healthScore.Classification,
+            AverageProgress = healthScore.AverageProgress,
+            ProgressDispersion = healthScore.ProgressDispersion,
             AlphaProgress = alphaProgress
         };
         return View(vm);

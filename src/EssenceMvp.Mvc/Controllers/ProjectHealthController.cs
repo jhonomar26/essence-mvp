@@ -10,49 +10,44 @@ namespace EssenceMvp.Mvc.Controllers;
 public class ProjectHealthController : Controller
 {
     private readonly IHealthCalculationService _healthCalcService;
-    private readonly IAlphaEvaluationService _alphaEvalService;
     private readonly EssenceDbContext _db;
 
-    public ProjectHealthController(IHealthCalculationService healthCalcService, IAlphaEvaluationService alphaEvalService, EssenceDbContext db)
+    public ProjectHealthController(IHealthCalculationService healthCalcService, EssenceDbContext db)
     {
         _healthCalcService = healthCalcService;
-        _alphaEvalService = alphaEvalService;
         _db = db;
     }
 
     // GET /evaluation/health/{projectId}
-    // Retorna: semáforo global + detalles de estado de cada Alpha
+    // Retorna: SEMAT Essence health score + alpha progress details
     [HttpGet("{projectId}")]
     public async Task<IActionResult> Get(int projectId)
     {
         var project = await _db.Projects
             .AsNoTracking()
-            .Include(p => p.AlphaStatuses)
-            .ThenInclude(s => s.Alpha)
             .FirstOrDefaultAsync(p => p.Id == projectId);
 
         if (project == null) return NotFound();
 
-        // Calcula semáforo global (Red/Yellow/Green) basado en atrasos de Alphas
-        var globalStatus = await _healthCalcService.CalculateAsync(projectId);
+        var healthScore = await _healthCalcService.CalculateProjectHealthAsync(projectId);
 
-        // Para cada Alpha, calcula estado actual
-        var alphaDetails = new List<HealthResult.AlphaDetail>();
-        foreach (var status in project.AlphaStatuses.OrderBy(s => s.Alpha.AreaOfConcern))
-        {
-            var stateResult = await _alphaEvalService.CalculateAsync(projectId, status.AlphaId);
-            alphaDetails.Add(new HealthResult.AlphaDetail
+        var alphaDetails = healthScore.AlphaProgresses
+            .Select(ap => new HealthResult.AlphaDetail
             {
-                AlphaId = status.AlphaId,
-                AlphaName = status.Alpha.Name,
-                CurrentStateNumber = stateResult.CurrentStateNumber,
-                CurrentStateName = stateResult.CurrentStateName
-            });
-        }
+                AlphaId = ap.AlphaId,
+                AlphaName = ap.AlphaName,
+                CurrentStateNumber = ap.CurrentStateNumber,
+                MaxStateNumber = ap.MaxStateNumber,
+                Progress = ap.Progress
+            })
+            .ToList();
 
         return Json(new HealthResult
         {
-            GlobalStatus = globalStatus,
+            HealthScore = healthScore.HealthScore,
+            Classification = healthScore.Classification,
+            AverageProgress = healthScore.AverageProgress,
+            ProgressDispersion = healthScore.ProgressDispersion,
             AlphaDetails = alphaDetails
         });
     }

@@ -161,44 +161,41 @@ public static class ProjectEndpoints
             return Results.NoContent();
         });
 
-        // GET /projects/{id}/health — global semaforo + alpha details
+        // GET /projects/{id}/health — SEMAT Essence health score + alpha progress
         group.MapGet("/{id:int}/health",
             async (int id, ClaimsPrincipal user, EssenceDbContext db,
-                   IAlphaEvaluationService alphaService,
                    IHealthCalculationService healthService) =>
         {
             if (!TryGetUserId(user, out var userId)) return Results.Unauthorized();
 
             var project = await db.Projects
                 .AsNoTracking()
-                .Include(p => p.AlphaStatuses)
-                    .ThenInclude(s => s.Alpha)
                 .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
 
             if (project is null) return Results.NotFound();
 
-            var globalStatus = await healthService.CalculateAsync(id);
+            var healthScore = await healthService.CalculateProjectHealthAsync(id);
 
-            var alphaDetails = new List<AlphaHealthDto>();
-            foreach (var status in project.AlphaStatuses.OrderBy(s => s.Alpha.AreaOfConcern))
+            var responseDto = new HealthResponseDto
             {
-                var stateResult = await alphaService.CalculateAsync(id, status.AlphaId);
-                alphaDetails.Add(new AlphaHealthDto
-                {
-                    AlphaId = status.AlphaId,
-                    AlphaName = status.Alpha.Name,
-                    CurrentStateNumber = stateResult.CurrentStateNumber,
-                    CurrentStateName = stateResult.CurrentStateName
-                });
-            }
-
-            var healthDto = new HealthDto
-            {
-                GlobalStatus = globalStatus,
-                AlphaDetails = alphaDetails
+                HealthScore = healthScore.HealthScore,
+                Classification = healthScore.Classification,
+                AverageProgress = healthScore.AverageProgress,
+                ProgressDispersion = healthScore.ProgressDispersion,
+                AlphaProgresses = healthScore.AlphaProgresses
+                    .OrderBy(a => a.AlphaName)
+                    .Select(a => new AlphaHealthDetailDto
+                    {
+                        AlphaId = a.AlphaId,
+                        AlphaName = a.AlphaName,
+                        CurrentStateNumber = a.CurrentStateNumber,
+                        MaxStateNumber = a.MaxStateNumber,
+                        Progress = a.Progress
+                    })
+                    .ToList()
             };
 
-            return Results.Ok(healthDto);
+            return Results.Ok(responseDto);
         });
 
         // POST /projects/{id}/checklist-responses — save responses + recalculate

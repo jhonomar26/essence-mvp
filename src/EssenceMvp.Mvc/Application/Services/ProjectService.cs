@@ -1,5 +1,6 @@
 using EssenceMvp.Mvc.Infrastructure;
 using EssenceMvp.Mvc.Infrastructure.Entities;
+using EssenceMvp.Mvc.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EssenceMvp.Mvc.Application.Services;
@@ -40,6 +41,7 @@ public class ProjectService : IProjectService
                 UpdatedAt = DateTimeOffset.UtcNow
             });
         }
+
         await _db.SaveChangesAsync();
         return project;
     }
@@ -47,8 +49,8 @@ public class ProjectService : IProjectService
     public async Task<Project?> GetProjectDetailAsync(int projectId, int userId) =>
         await _db.Projects
             .Include(p => p.AlphaStatuses)
-                .ThenInclude(s => s.Alpha)
-                    .ThenInclude(a => a.States)
+            .ThenInclude(s => s.Alpha)
+            .ThenInclude(a => a.States)
             .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
 
     public async Task<bool> DeleteProjectAsync(int projectId, int userId)
@@ -60,8 +62,9 @@ public class ProjectService : IProjectService
         return true;
     }
 
-    // Guarda/actualiza respuestas de evaluación de checklist (upsert)
-    public async Task SaveChecklistResponsesAsync(int projectId, List<(int stateChecklistId, bool isAchieved, string? notes)> responses)
+    // Guarda/actualiza respuestas de evaluación de checklist del usuario (upsert)
+    public async Task SaveChecklistResponsesAsync(int projectId,
+        List<(int stateChecklistId, bool isAchieved, string? notes)> responses)
     {
         foreach (var (checklistId, isAchieved, notes) in responses)
         {
@@ -88,11 +91,14 @@ public class ProjectService : IProjectService
                 existing.UpdatedAt = DateTimeOffset.UtcNow;
             }
         }
+
         await _db.SaveChangesAsync();
     }
 
-    // Obtiene todos los criterios/checklists de un Alpha ordenados por estado, con estado actual
-    public async Task<List<(int Id, string CriterionText, bool IsAchieved)>> GetAlphaChecklistsAsync(int projectId, int alphaId)
+    // Devuelve todos los checklists de un Alpha, combinando la estructura (preguntas)
+    // con las respuestas del proyecto para indicar cuáles están cumplidos (true/false)
+    public async Task<List<(int Id, string CriterionText, bool IsAchieved)>> GetAlphaChecklistsAsync(int projectId,
+        int alphaId)
     {
         var alpha = await _db.Alphas
             .Include(a => a.States)
@@ -120,5 +126,50 @@ public class ProjectService : IProjectService
         }
 
         return result;
+    }
+
+    // Returns current state of Alpha using SEMAT Essence sequential logic.
+    // Current state = highest state where ALL checklists (1..N) are satisfied.
+    public async Task<AlphaStateResult> GetAlphaCurrentStateAsync(int projectId, int alphaId)
+    {
+        var alpha = await _db.Alphas
+            .Include(a => a.States)
+            .ThenInclude(s => s.Checklists)
+            .FirstOrDefaultAsync(a => a.Id == alphaId);
+
+        if (alpha == null)
+            return new AlphaStateResult { CurrentStateNumber = 0, CurrentStateName = "Not Found", MaxStateNumber = 0 };
+
+        var states = alpha.States.OrderBy(s => s.StateNumber).ToList();
+        short maxStateNumber = (short)states.Count;
+
+        short current = 0;
+        string name = "Not Started";
+
+        foreach (var state in states)
+        {
+            var checklistIds = state.Checklists.Select(c => c.Id).ToList();
+
+            var responses = await _db.ChecklistResponses
+                .Where(r => r.ProjectId == projectId &&
+                            checklistIds.Contains(r.StateChecklistId))
+                .ToListAsync();
+
+            bool completed = state.Checklists.All(c =>
+                responses.Any(r => r.StateChecklistId == c.Id && r.IsAchieved));
+
+            if (!completed)
+                break;
+
+            current = state.StateNumber;
+            name = state.StateName;
+        }
+
+        return new AlphaStateResult
+        {
+            CurrentStateNumber = current,
+            CurrentStateName = name,
+            MaxStateNumber = maxStateNumber
+        };
     }
 }

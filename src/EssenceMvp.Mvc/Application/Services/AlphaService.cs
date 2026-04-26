@@ -11,6 +11,7 @@ public class AlphaService : IAlphaService
 
     public AlphaService(EssenceDbContext db) => _db = db;
 
+    // Returns Alpha progress per Essence: currentState / maxStates, no per-Alpha health classification.
     public async Task<List<AlphaProgressDto>> GetProjectAlphaProgressAsync(int projectId, int userId)
     {
         var project = await _db.Projects
@@ -25,13 +26,10 @@ public class AlphaService : IAlphaService
             .OrderBy(s => s.AlphaId)
             .Select(s =>
             {
-                var total = s.Alpha.States.Count;
-                var completionPercent = total == 0 ? 0.0 : Math.Round((double)s.CurrentStateNumber / total * 100, 0);
+                var maxStates = (short)s.Alpha.States.Count;
+                var progress = maxStates == 0 ? 0m : Math.Round(((decimal)s.CurrentStateNumber / maxStates) * 100, 2);
                 var currentStateName = s.Alpha.States
-                    .FirstOrDefault(st => st.StateNumber == s.CurrentStateNumber)?.StateName ?? "Not started";
-                var health = completionPercent >= 70 ? HealthStatus.Green
-                    : completionPercent >= 40 ? HealthStatus.Yellow
-                    : HealthStatus.Red;
+                    .FirstOrDefault(st => st.StateNumber == s.CurrentStateNumber)?.StateName ?? "No iniciado";
 
                 return new AlphaProgressDto
                 {
@@ -39,10 +37,9 @@ public class AlphaService : IAlphaService
                     AlphaName = s.Alpha.Name,
                     AreaOfConcern = s.Alpha.AreaOfConcern,
                     CurrentStateNumber = s.CurrentStateNumber,
-                    TotalStates = total,
+                    MaxStateNumber = maxStates,
                     CurrentStateName = currentStateName,
-                    CompletionPercent = completionPercent,
-                    AlphaHealth = health
+                    Progress = progress
                 };
             })
             .ToList();

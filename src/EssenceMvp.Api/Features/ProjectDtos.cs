@@ -42,18 +42,22 @@ public sealed class AlphaStatusDto
     public string? CurrentStateName { get; init; }
 }
 
-public sealed class HealthDto
+public sealed class HealthResponseDto
 {
-    public string GlobalStatus { get; init; } = null!;
-    public List<AlphaHealthDto> AlphaDetails { get; init; } = new();
+    public decimal HealthScore { get; init; }
+    public string Classification { get; init; } = "";
+    public decimal AverageProgress { get; init; }
+    public decimal ProgressDispersion { get; init; }
+    public List<AlphaHealthDetailDto> AlphaProgresses { get; init; } = new();
 }
 
-public sealed class AlphaHealthDto
+public sealed class AlphaHealthDetailDto
 {
     public int AlphaId { get; init; }
     public string AlphaName { get; init; } = null!;
     public short CurrentStateNumber { get; init; }
-    public string CurrentStateName { get; init; } = null!;
+    public short MaxStateNumber { get; init; }
+    public decimal Progress { get; init; }
 }
 
 public sealed class ChecklistResponseRequest

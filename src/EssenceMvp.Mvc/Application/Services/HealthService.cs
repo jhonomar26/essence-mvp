@@ -7,22 +7,30 @@ namespace EssenceMvp.Mvc.Application.Services;
 public class HealthService : IHealthService
 {
     private readonly EssenceDbContext _db;
+    private readonly IHealthCalculationService _healthCalcService;
 
-    public HealthService(EssenceDbContext db) => _db = db;
+    public HealthService(EssenceDbContext db, IHealthCalculationService healthCalcService)
+    {
+        _db = db;
+        _healthCalcService = healthCalcService;
+    }
 
+    // Maps Essence health score to traffic light status (for views/dashboards)
     public async Task<HealthStatus> CalculateHealthAsync(int projectId, int userId)
     {
-        var statuses = await _db.ProjectAlphaStatuses
-            .Include(s => s.Alpha).ThenInclude(a => a.States)
-            .Where(s => s.ProjectId == projectId && s.Project.UserId == userId)
-            .ToListAsync();
+        var project = await _db.Projects
+            .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
 
-        if (!statuses.Any()) return HealthStatus.Red;
+        if (project == null) return HealthStatus.Red;
 
-        var avgScore = statuses
-            .Select(s => s.Alpha.States.Count == 0 ? 0.0 : (double)s.CurrentStateNumber / s.Alpha.States.Count)
-            .Average();
+        var healthScore = await _healthCalcService.CalculateProjectHealthAsync(projectId);
 
-        return avgScore >= 0.7 ? HealthStatus.Green : avgScore >= 0.4 ? HealthStatus.Yellow : HealthStatus.Red;
+        return healthScore.HealthScore switch
+        {
+            >= 80 => HealthStatus.Green,      // SALUDABLE
+            >= 60 => HealthStatus.Yellow,     // ACEPTABLE
+            >= 40 => HealthStatus.Yellow,     // EN RIESGO
+            _ => HealthStatus.Red             // CRÍTICO
+        };
     }
 }

@@ -1,6 +1,6 @@
 namespace EssenceMvp.Api.Application.Services;
 
-public record AlphaStateResult(short CurrentStateNumber, string CurrentStateName);
+public record AlphaStateResult(short CurrentStateNumber, string CurrentStateName, short MaxStateNumber);
 
 public interface IAlphaEvaluationService
 {

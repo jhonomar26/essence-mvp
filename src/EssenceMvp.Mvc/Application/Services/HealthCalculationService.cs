@@ -1,7 +1,8 @@
-﻿namespace EssenceMvp.Mvc.Application.Services;
-
-using EssenceMvp.Mvc.Infrastructure;
+﻿using EssenceMvp.Mvc.Infrastructure;
+using EssenceMvp.Mvc.Models;
 using Microsoft.EntityFrameworkCore;
+
+namespace EssenceMvp.Mvc.Application.Services;
 
 public class HealthCalculationService : IHealthCalculationService
 {
@@ -12,33 +13,68 @@ public class HealthCalculationService : IHealthCalculationService
         _db = db;
     }
 
-    // Semáforo: Red/Yellow/Green según atrasos de Alphas
-    // Asume que Alpha debe estar en estado ≥3 para considerar "en tiempo"
-    public async Task<string> CalculateAsync(int projectId)
+    // SEMAT Essence Health Calculation:
+    // 1. Progress: (currentState / maxStates) * 100 per Alpha
+    // 2. Average: mean of all Alpha progresses
+    // 3. Dispersion: max(progress) - min(progress)
+    // 4. Penalty: dispersion * 0.2
+    // 5. HealthScore: avg - penalty
+    // 6. Classification: 80-100 SALUDABLE, 60-79 ACEPTABLE, 40-59 EN RIESGO, 0-39 CRÍTICO
+    public async Task<ProjectHealthScore> CalculateProjectHealthAsync(int projectId)
     {
-        var statuses = await _db.ProjectAlphaStatuses
-            .Where(x => x.ProjectId == projectId)
+        var alphas = await _db.Alphas
+            .Include(a => a.States)
+            .Include(a => a.ProjectStatuses.Where(ps => ps.ProjectId == projectId))
             .ToListAsync();
 
-        int red = 0;
-        int yellow = 0;
+        var alphaProgresses = new List<ProjectHealthScore.AlphaProgressDetail>();
 
-        // Calcula cuántos Alphas están en rojo/amarillo
-        foreach (var s in statuses)
+        foreach (var alpha in alphas)
         {
-            int diff = 3 - s.CurrentStateNumber;  // Estados que faltan para llegar a 3
+            var status = alpha.ProjectStatuses.FirstOrDefault();
+            short currentState = status?.CurrentStateNumber ?? 0;
+            short maxStates = (short)alpha.States.Count;
 
-            if (diff >= 2) red++;              // Falta 2+ estados → Red
-            else if (diff == 1) yellow++;      // Falta 1 estado → Yellow
+            decimal progress = maxStates > 0 ? (currentState / (decimal)maxStates) * 100 : 0;
+
+            alphaProgresses.Add(new ProjectHealthScore.AlphaProgressDetail
+            {
+                AlphaId = alpha.Id,
+                AlphaName = alpha.Name,
+                CurrentStateNumber = currentState,
+                MaxStateNumber = maxStates,
+                Progress = progress
+            });
         }
 
-        // Lógica de semáforo global
-        if (red > 0 || yellow >= 3)
-            return "Red";      // 1+ Alphas muy atrasados OR 3+ levemente atrasados
+        if (alphaProgresses.Count == 0)
+            return new ProjectHealthScore { HealthScore = 0, Classification = "CRÍTICO", AverageProgress = 0, ProgressDispersion = 0 };
 
-        if (yellow > 0)
-            return "Yellow";   // 1-2 Alphas levemente atrasados
+        decimal averageProgress = alphaProgresses.Average(p => p.Progress);
+        decimal maxProgress = alphaProgresses.Max(p => p.Progress);
+        decimal minProgress = alphaProgresses.Min(p => p.Progress);
+        decimal dispersion = maxProgress - minProgress;
+        decimal penalty = dispersion * 0.2m;
+        decimal healthScore = averageProgress - penalty;
 
-        return "Green";        // Todos en tiempo
+        // Clamp to 0-100
+        healthScore = Math.Max(0, Math.Min(100, healthScore));
+
+        string classification = healthScore switch
+        {
+            >= 80 => "SALUDABLE",
+            >= 60 => "ACEPTABLE",
+            >= 40 => "EN RIESGO",
+            _ => "CRÍTICO"
+        };
+
+        return new ProjectHealthScore
+        {
+            HealthScore = Math.Round(healthScore, 2),
+            Classification = classification,
+            AverageProgress = Math.Round(averageProgress, 2),
+            ProgressDispersion = Math.Round(dispersion, 2),
+            AlphaProgresses = alphaProgresses
+        };
     }
 }

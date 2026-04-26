@@ -1,6 +1,8 @@
-﻿namespace EssenceMvp.Mvc.Application.Services;
+﻿using EssenceMvp.Mvc.Models;
+
+namespace EssenceMvp.Mvc.Application.Services;
 
 public interface IHealthCalculationService
 {
-    Task<string> CalculateAsync(int projectId);
+    Task<ProjectHealthScore> CalculateProjectHealthAsync(int projectId);
 }
