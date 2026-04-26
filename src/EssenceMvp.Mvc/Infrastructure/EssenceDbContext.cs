@@ -1,6 +1,5 @@
 using EssenceMvp.Mvc.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EssenceMvp.Mvc.Infrastructure;
 
@@ -121,10 +120,7 @@ public class EssenceDbContext : DbContext
             e.Property(r => r.ProjectId).HasColumnName("project_id");
             e.Property(r => r.CreatedAt).HasColumnName("created_at");
             e.Property(r => r.GlobalStatus)
-                .HasColumnName("global_status")
-                .HasConversion(
-                    v => v.ToString(),
-                    v => (HealthStatus)Enum.Parse(typeof(HealthStatus), v));
+                .HasColumnName("global_status");
             e.Property(r => r.AlphaDetails).HasColumnName("alpha_details").HasColumnType("jsonb");
             e.HasOne(r => r.Project).WithMany(p => p.HealthReports).HasForeignKey(r => r.ProjectId);
         });
