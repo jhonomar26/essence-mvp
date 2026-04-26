@@ -122,7 +122,9 @@ public class EssenceDbContext : DbContext
             e.Property(r => r.CreatedAt).HasColumnName("created_at");
             e.Property(r => r.GlobalStatus)
                 .HasColumnName("global_status")
-                .HasConversion(new EnumToStringConverter<HealthStatus>());
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (HealthStatus)Enum.Parse(typeof(HealthStatus), v));
             e.Property(r => r.AlphaDetails).HasColumnName("alpha_details").HasColumnType("jsonb");
             e.HasOne(r => r.Project).WithMany(p => p.HealthReports).HasForeignKey(r => r.ProjectId);
         });
