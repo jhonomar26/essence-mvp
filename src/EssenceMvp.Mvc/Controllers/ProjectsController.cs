@@ -58,6 +58,7 @@ public class ProjectsController : Controller
         if (result == null) return NotFound();
 
         ViewBag.AlphaChecklists = result.AlphaChecklists;
+        ViewBag.RecentSnapshots = result.RecentSnapshots;
         return View(result.ViewModel);
     }
 

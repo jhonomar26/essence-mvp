@@ -34,6 +34,7 @@ builder.Services.AddScoped<IHealthService, HealthService>();
 builder.Services.AddScoped<IAlphaEvaluationService, AlphaEvaluationService>();
 builder.Services.AddScoped<IHealthCalculationService, HealthCalculationService>();
 builder.Services.AddScoped<IProjectDetailComposerService, ProjectDetailComposerService>();
+builder.Services.AddScoped<ISnapshotService, SnapshotService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

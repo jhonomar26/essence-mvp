@@ -8,17 +8,20 @@ public class ProjectDetailComposerService : IProjectDetailComposerService
     private readonly IAlphaService _alphas;
     private readonly IHealthService _health;
     private readonly IHealthCalculationService _healthCalc;
+    private readonly ISnapshotService _snapshots;
 
     public ProjectDetailComposerService(
         IProjectService projects,
         IAlphaService alphas,
         IHealthService health,
-        IHealthCalculationService healthCalc)
+        IHealthCalculationService healthCalc,
+        ISnapshotService snapshots)
     {
         _projects = projects;
         _alphas = alphas;
         _health = health;
         _healthCalc = healthCalc;
+        _snapshots = snapshots;
     }
 
     public async Task<ProjectDetailComposerResult?> GetProjectDetailAsync(int projectId, int userId)
@@ -51,10 +54,13 @@ public class ProjectDetailComposerService : IProjectDetailComposerService
             AlphaProgress = alphaProgress
         };
 
+        var snapshots = await _snapshots.GetHistoryAsync(projectId, userId);
+
         return new ProjectDetailComposerResult
         {
             ViewModel = viewModel,
-            AlphaChecklists = alphaChecklists
+            AlphaChecklists = alphaChecklists,
+            RecentSnapshots = snapshots
         };
     }
 }
