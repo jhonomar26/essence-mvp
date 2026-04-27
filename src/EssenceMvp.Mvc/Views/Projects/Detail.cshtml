@@ -96,9 +96,9 @@
                         </div>
 
                         <div class="progress" style="height: 10px;">
-                            <div class="progress-bar bg-primary"
+                            <div class="progress-bar @(alpha.Progress < 33 ? "bg-danger" : alpha.Progress < 67 ? "bg-warning" : "bg-success")"
                                  role="progressbar"
-                                 style="width: @alpha.Progress%"
+                                 style="width: @alpha.Progress.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"
                                  aria-valuenow="@((int)alpha.Progress)"
                                  aria-valuemin="0"
                                  aria-valuemax="100">
