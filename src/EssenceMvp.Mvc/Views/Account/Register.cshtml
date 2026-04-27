@@ -27,7 +27,10 @@
                     <h5 class="card-title mb-4">Crear cuenta</h5>
 
                     <form asp-action="Register" method="post">
-                        <div asp-validation-summary="All" class="alert alert-danger py-2 small"></div>
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="All" class="alert alert-danger py-2 small"></div>
+                        }
 
                         <div class="mb-3">
                             <label asp-for="DisplayName" class="form-label">Nombre (opcional)</label>
