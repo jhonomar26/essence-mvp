@@ -1,18 +1,297 @@
-.semaforo {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
+/* Reset / Base */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #f5f7fa;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+}
+
+/* Sidebar (desktop) */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
     display: flex;
     flex-direction: column;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+    z-index: 1030;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.sidebar-brand:hover {
+    opacity: 0.85;
+    color: white;
+}
+
+.sidebar-brand i {
+    font-size: 1.5rem;
+    color: #4dabf7;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.15s ease;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.sidebar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.sidebar-nav .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Main content area */
+.main-content {
+    min-height: 100vh;
+    background-color: #f5f7fa;
+}
+
+body.has-sidebar .main-content {
+    margin-left: 260px;
+}
+
+.content-wrapper {
+    padding: 2rem 2.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Mobile toggle button */
+.sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1040;
+    background: #212529;
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 0.5rem;
+    font-size: 1.5rem;
+    display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Sidebar overlay (mobile) */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1029;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Page header */
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: #212529;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.card-body {
+    padding: 1.5rem;
 }
 
 .hover-card {
-    transition: transform .15s ease, box-shadow .15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: default;
 }
+
 .hover-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.1) !important;
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Semaforo */
+.semaforo {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Health badges */
+.badge-health {
+    padding: 0.4rem 0.75rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.badge-health-green {
+    background-color: #d1f4e0;
+    color: #0d633a;
+}
+
+.badge-health-yellow {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.badge-health-red {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: #212529;
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Auth pages (no sidebar) */
+body:not(.has-sidebar) .main-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+body:not(.has-sidebar) .content-wrapper {
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem 1rem;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    body.has-sidebar .main-content {
+        margin-left: 0;
+    }
+
+    .content-wrapper {
+        padding: 1.25rem;
+        padding-top: 4rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .sidebar-toggle {
+        display: none !important;
+    }
 }

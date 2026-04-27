@@ -8,30 +8,62 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
-<body>
+<body class="@(User.Identity?.IsAuthenticated == true ? "has-sidebar" : "")">
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand fw-bold" asp-controller="Projects" asp-action="Index">
-                    <i class="bi bi-diagram-3-fill"></i> Essence MVP
+        <button class="sidebar-toggle d-md-none" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+            <i class="bi bi-list"></i>
+        </button>
+        <aside class="sidebar bg-dark text-white" id="sidebar">
+            <div class="sidebar-header">
+                <a asp-controller="Projects" asp-action="Index" class="sidebar-brand">
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span>Essence MVP</span>
                 </a>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-white-50 small">@User.Identity.Name</span>
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                        <button type="submit" class="btn btn-sm btn-outline-light">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </button>
-                    </form>
-                </div>
             </div>
-        </nav>
+            <nav class="sidebar-nav">
+                <a asp-controller="Projects" asp-action="Index" class="nav-link active">
+                    <i class="bi bi-folder-fill"></i> <span>Mis Proyectos</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info mb-3">
+                    <div class="small text-white-50">Usuario</div>
+                    <div class="text-white fw-semibold text-truncate">@User.Identity.Name</div>
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="w-100">
+                    <button type="submit" class="btn btn-sm btn-outline-light w-100">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </aside>
+        <div class="sidebar-overlay d-md-none" id="sidebarOverlay"></div>
     }
-    <main class="container py-4">
-        @RenderBody()
+    <main class="main-content">
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
     </main>
 
     <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmTitle">Confirmar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmMessage"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmBtn">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -60,6 +92,37 @@
 
             setTimeout(() => toastEl.remove(), duration);
         }
+
+        function showConfirmModal(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            const confirmBtn = document.getElementById('confirmBtn');
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+            confirmBtn.onclick = () => {
+                modal.hide();
+                callback();
+            };
+
+            modal.show();
+        }
+
+        // Sidebar toggle for mobile
+        (function() {
+            const toggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (toggle && sidebar && overlay) {
+                toggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                });
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+            }
+        })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

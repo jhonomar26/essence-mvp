@@ -3,8 +3,10 @@
 <div class="modal fade" id="evaluateAlphaModal_@Model.AlphaId" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Evaluar: @Model.AlphaName</h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square"></i> Evaluar: @Model.AlphaName
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="evalForm_@Model.AlphaId" method="post" action="/evaluation/alpha" onsubmit="submitEvaluation(event, @Model.AlphaId)">
@@ -16,24 +18,26 @@
                     {
                         @foreach (var stateChecklist in Model.Checklists)
                         {
-                            <div class="mb-4">
-                                <h6 class="text-primary fw-bold mb-3">
-                                    <span class="badge bg-info text-dark me-2">Estado @stateChecklist.StateNumber</span>
-                                    @stateChecklist.StateName
-                                </h6>
+                            <div class="mb-4 pb-4 border-bottom">
+                                <div class="mb-3">
+                                    <span class="badge bg-primary me-2">Estado @stateChecklist.StateNumber</span>
+                                    <h6 class="d-inline fw-bold">@stateChecklist.StateName</h6>
+                                </div>
                                 <div class="list-group list-group-flush">
                                     @foreach (var criterion in stateChecklist.Criteria)
                                     {
-                                        <div class="list-group-item d-flex align-items-start gap-2">
-                                            <input type="checkbox"
-                                                   class="form-check-input mt-1"
-                                                   id="checklist_@criterion.Id"
-                                                   value="@criterion.Id"
-                                                   data-checklist-id="@criterion.Id"
-                                                   @(criterion.IsAchieved ? "checked" : "") />
-                                            <label for="checklist_@criterion.Id" class="form-check-label flex-grow-1 mb-0">
-                                                @criterion.CriterionText
-                                            </label>
+                                        <div class="list-group-item px-0 py-2">
+                                            <div class="form-check">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="checklist_@criterion.Id"
+                                                       value="@criterion.Id"
+                                                       data-checklist-id="@criterion.Id"
+                                                       @(criterion.IsAchieved ? "checked" : "") />
+                                                <label for="checklist_@criterion.Id" class="form-check-label">
+                                                    @criterion.CriterionText
+                                                </label>
+                                            </div>
                                         </div>
                                     }
                                 </div>
@@ -42,12 +46,16 @@
                     }
                     else
                     {
-                        <p class="text-muted">No hay criterios para evaluar.</p>
+                        <div class="alert alert-info" role="alert">
+                            <i class="bi bi-info-circle"></i> No hay criterios para evaluar.
+                        </div>
                     }
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Evaluación</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check2"></i> Guardar Evaluación
+                    </button>
                 </div>
             </form>
         </div>
@@ -55,14 +63,12 @@
 </div>
 
 <script>
-// Envía evaluación a servidor: guarda respuestas + recalcula estado
 function submitEvaluation(e, alphaId) {
     e.preventDefault();
 
     const form = document.getElementById('evalForm_' + alphaId);
     const formData = new FormData(form);
 
-    // Recopila estado de todos los checkboxes
     const answers = [];
     document.querySelectorAll(`#evalForm_${alphaId} input[type="checkbox"][data-checklist-id]`).forEach(cb => {
         const checklistId = parseInt(cb.dataset.checklistId);
@@ -80,25 +86,21 @@ function submitEvaluation(e, alphaId) {
         answers: answers
     };
 
-    // POST a AlphaEvaluationController.Evaluate()
     fetch('/evaluation/alpha', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     })
     .then(r => r.json())
     .then(data => {
-        // Respuesta: { CurrentStateNumber, CurrentStateName }
-        console.log('Evaluación guardada:', data);
         const modal = bootstrap.Modal.getInstance(document.getElementById('evaluateAlphaModal_' + alphaId));
         modal?.hide();
-        location.reload();  // Recarga página para ver semáforo actualizado
+        showToast('Evaluación guardada correctamente', 'success');
+        setTimeout(() => location.reload(), 1000);
     })
     .catch(err => {
         console.error('Error:', err);
-        alert('Error al guardar la evaluación');
+        showToast('Error al guardar la evaluación', 'error');
     });
 }
 </script>
