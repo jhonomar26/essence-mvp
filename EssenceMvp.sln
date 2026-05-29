@@ -1,11 +1,17 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Mvc", "src\EssenceMvp.Mvc\EssenceMvp.Mvc.csproj", "{11060717-F1FF-426B-A932-2F1D6128D61A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Domain", "src\EssenceMvp.Domain\EssenceMvp.Domain.csproj", "{A1B2C3D4-0001-0001-0001-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Application", "src\EssenceMvp.Application\EssenceMvp.Application.csproj", "{A1B2C3D4-0002-0002-0002-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Infrastructure", "src\EssenceMvp.Infrastructure\EssenceMvp.Infrastructure.csproj", "{A1B2C3D4-0003-0003-0003-000000000003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Api", "src\EssenceMvp.Api\EssenceMvp.Api.csproj", "{A1B2C3D4-0004-0004-0004-000000000004}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,12 +22,27 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{11060717-F1FF-426B-A932-2F1D6128D61A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{11060717-F1FF-426B-A932-2F1D6128D61A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{11060717-F1FF-426B-A932-2F1D6128D61A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{11060717-F1FF-426B-A932-2F1D6128D61A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0001-0001-0001-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0001-0001-0001-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0001-0001-0001-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0001-0001-0001-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0002-0002-0002-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0002-0002-0002-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0002-0002-0002-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0002-0002-0002-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0003-0003-0003-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0003-0003-0003-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0003-0003-0003-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0003-0003-0003-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0004-0004-0004-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0004-0004-0004-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0004-0004-0004-000000000004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0004-0004-0004-000000000004}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{11060717-F1FF-426B-A932-2F1D6128D61A} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
+		{A1B2C3D4-0001-0001-0001-000000000001} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
+		{A1B2C3D4-0002-0002-0002-000000000002} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
+		{A1B2C3D4-0003-0003-0003-000000000003} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
+		{A1B2C3D4-0004-0004-0004-000000000004} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
 	EndGlobalSection
 EndGlobal
