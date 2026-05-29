@@ -1,13 +1,16 @@
-﻿using EssenceMvp.Mvc.Application.Services;
+using EssenceMvp.Mvc.Application.Services;
 using EssenceMvp.Mvc.Infrastructure;
 using EssenceMvp.Mvc.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EssenceMvp.Mvc.Controllers;
 
-[Route("evaluation/health")]
-public class ProjectHealthController : Controller
+[ApiController]
+[Authorize]
+[Route("api/evaluation/health")]
+public class ProjectHealthController : ControllerBase
 {
     private readonly IHealthCalculationService _healthCalcService;
     private readonly EssenceDbContext _db;
@@ -18,8 +21,6 @@ public class ProjectHealthController : Controller
         _db = db;
     }
 
-    // GET /evaluation/health/{projectId}
-    // Retorna: SEMAT Essence health score + alpha progress details
     [HttpGet("{projectId}")]
     public async Task<IActionResult> Get(int projectId)
     {
@@ -42,7 +43,7 @@ public class ProjectHealthController : Controller
             })
             .ToList();
 
-        return Json(new HealthResult
+        return Ok(new HealthResult
         {
             HealthScore = healthScore.HealthScore,
             Classification = healthScore.Classification,

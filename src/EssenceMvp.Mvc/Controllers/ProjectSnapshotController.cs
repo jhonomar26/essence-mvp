@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EssenceMvp.Mvc.Controllers;
 
 [Authorize]
-[Route("projects/{projectId}/snapshots")]
+[Route("api/projects/{projectId}/snapshots")]
 [ApiController]
 public class ProjectSnapshotController : ControllerBase
 {

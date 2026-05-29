@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EssenceMvp.Mvc.Controllers;
 
+[ApiController]
 [Authorize]
-public class ProjectsController : Controller
+[Route("api/projects")]
+public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projects;
     private readonly IHealthService _health;
@@ -22,6 +24,7 @@ public class ProjectsController : Controller
 
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         var projects = await _projects.GetUserProjectsAsync(UserId);
@@ -38,34 +41,34 @@ public class ProjectsController : Controller
                 OverallHealth = health
             });
         }
-        return View(summaries);
+        return Ok(summaries);
     }
-
-    [HttpGet]
-    public IActionResult Create() => View(new CreateProjectViewModel());
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateProjectViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
         var project = await _projects.CreateProjectAsync(UserId, model.Name, model.Description, model.Phase);
-        return RedirectToAction("Detail", new { id = project.Id });
+        return Ok(new { project.Id, project.Name, project.Phase });
     }
 
+    [HttpGet("{id}")]
     public async Task<IActionResult> Detail(int id)
     {
         var result = await _detailComposer.GetProjectDetailAsync(id, UserId);
         if (result == null) return NotFound();
 
-        ViewBag.AlphaChecklists = result.AlphaChecklists;
-        ViewBag.RecentSnapshots = result.RecentSnapshots;
-        return View(result.ViewModel);
+        return Ok(new
+        {
+            project = result.ViewModel,
+            alphaChecklists = result.AlphaChecklists,
+            recentSnapshots = result.RecentSnapshots
+        });
     }
 
-    [HttpPost]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         await _projects.DeleteProjectAsync(id, UserId);
-        return RedirectToAction("Index");
+        return Ok();
     }
 }
