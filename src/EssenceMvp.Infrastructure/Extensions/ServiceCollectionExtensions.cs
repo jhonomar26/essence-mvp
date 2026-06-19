@@ -1,6 +1,7 @@
 using EssenceMvp.Application.Interfaces;
 using EssenceMvp.Domain.Entities;
 using EssenceMvp.Infrastructure.Persistence;
+using EssenceMvp.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<EssenceDbContext>(options => options.UseNpgsql(dataSource));
         services.AddScoped<IEssenceDbContext>(sp => sp.GetRequiredService<EssenceDbContext>());
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         return services;
     }

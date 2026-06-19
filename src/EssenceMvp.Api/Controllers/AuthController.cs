@@ -1,10 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using EssenceMvp.Application.Interfaces;
 using EssenceMvp.Api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace EssenceMvp.Api.Controllers;
 
@@ -13,12 +9,12 @@ namespace EssenceMvp.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
-    private readonly IConfiguration _config;
+    private readonly IJwtTokenService _tokenService;
 
-    public AuthController(IAuthService auth, IConfiguration config)
+    public AuthController(IAuthService auth, IJwtTokenService tokenService)
     {
         _auth = auth;
-        _config = config;
+        _tokenService = tokenService;
     }
 
     [HttpPost("login")]
@@ -30,7 +26,7 @@ public class AuthController : ControllerBase
 
         return Ok(new
         {
-            token = GenerateToken(user.Id, user.Email, user.DisplayName ?? user.Email),
+            token = _tokenService.GenerateToken(user.Id, user.Email, user.DisplayName ?? user.Email),
             user = new { user.Id, user.Email, displayName = user.DisplayName ?? user.Email }
         });
     }
@@ -44,30 +40,8 @@ public class AuthController : ControllerBase
 
         return Ok(new
         {
-            token = GenerateToken(user!.Id, user.Email, user.DisplayName ?? user.Email),
+            token = _tokenService.GenerateToken(user!.Id, user.Email, user.DisplayName ?? user.Email),
             user = new { user!.Id, user.Email, displayName = user.DisplayName ?? user.Email }
         });
-    }
-
-    private string GenerateToken(int userId, string email, string displayName)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Email, email),
-            new Claim(ClaimTypes.Name, displayName)
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(8),
-            signingCredentials: creds);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

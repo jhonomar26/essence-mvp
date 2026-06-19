@@ -17,7 +17,11 @@
       "Bash(grep -r \"using \" \"C:\\\\Users\\\\jhono\\\\RiderProjects\\\\EssenceMvp\\\\src\\\\EssenceMvp.Api\" --include=\"*.cs\" ! -path \"*/bin/*\" ! -path \"*/obj/*\")",
       "Bash(git checkout *)",
       "Bash(git branch *)",
-      "Bash(xargs basename *)"
+      "Bash(xargs basename *)",
+      "Bash(rtk find *)",
+      "Bash(rtk ls *)",
+      "Bash(rtk ps *)",
+      "Bash(rtk read *)"
     ]
   }
 }
