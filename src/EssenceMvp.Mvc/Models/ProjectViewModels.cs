@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using EssenceMvp.Mvc.Infrastructure.Entities;
+using EssenceMvp.Domain.Enums;
 
 namespace EssenceMvp.Mvc.Models;
 
@@ -21,29 +21,4 @@ public class CreateProjectViewModel
 
     [MaxLength(100)]
     public string? Phase { get; set; }
-}
-
-public class ProjectDetailViewModel
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = "";
-    public string? Description { get; set; }
-    public string? Phase { get; set; }
-    public HealthStatus OverallHealth { get; set; }
-    public decimal HealthScore { get; set; }
-    public string HealthClassification { get; set; } = "";
-    public decimal AverageProgress { get; set; }
-    public decimal ProgressDispersion { get; set; }
-    public List<AlphaProgressDto> AlphaProgress { get; set; } = new();
-}
-
-public class AlphaProgressDto
-{
-    public int AlphaId { get; set; }
-    public string AlphaName { get; set; } = "";
-    public string AreaOfConcern { get; set; } = "";
-    public short CurrentStateNumber { get; set; }
-    public short MaxStateNumber { get; set; }
-    public string CurrentStateName { get; set; } = "";
-    public decimal Progress { get; set; }
 }

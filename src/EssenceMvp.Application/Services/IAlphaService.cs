@@ -1,0 +1,8 @@
+using EssenceMvp.Application.Dtos;
+
+namespace EssenceMvp.Application.Services;
+
+public interface IAlphaService
+{
+    Task<List<AlphaProgressDto>> GetProjectAlphaProgressAsync(int projectId, int userId);
+}

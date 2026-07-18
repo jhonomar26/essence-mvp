@@ -1,6 +1,6 @@
-using EssenceMvp.Mvc.Infrastructure.Entities;
+using EssenceMvp.Domain.Enums;
 
-namespace EssenceMvp.Mvc.Models;
+namespace EssenceMvp.Application.Dtos;
 
 public class SnapshotSummaryDto
 {

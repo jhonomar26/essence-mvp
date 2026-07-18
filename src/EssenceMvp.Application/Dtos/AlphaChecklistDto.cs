@@ -1,4 +1,4 @@
-namespace EssenceMvp.Mvc.Models;
+namespace EssenceMvp.Application.Dtos;
 
 public class AlphaChecklistDto
 {

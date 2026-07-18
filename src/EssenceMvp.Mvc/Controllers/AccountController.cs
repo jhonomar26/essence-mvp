@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using EssenceMvp.Mvc.Application.Services;
-using EssenceMvp.Mvc.Infrastructure.Entities;
+using EssenceMvp.Application.Services;
+using EssenceMvp.Domain.Entities;
 using EssenceMvp.Mvc.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

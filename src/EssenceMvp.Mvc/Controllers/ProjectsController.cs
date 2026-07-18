@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using EssenceMvp.Mvc.Application.Services;
+using EssenceMvp.Application.Services;
 using EssenceMvp.Mvc.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,4 +1,4 @@
-using EssenceMvp.Mvc.Infrastructure.Entities;
+using EssenceMvp.Domain.Enums;
 
 namespace EssenceMvp.Mvc.Helpers;
 

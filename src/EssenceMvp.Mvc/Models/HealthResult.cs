@@ -1,4 +1,4 @@
-﻿namespace EssenceMvp.Mvc.Models;
+namespace EssenceMvp.Mvc.Models;
 
 public class HealthResult
 {

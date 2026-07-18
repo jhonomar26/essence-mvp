@@ -8,10 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <ProjectReference Include="..\EssenceMvp.Application\EssenceMvp.Application.csproj" />
+    <ProjectReference Include="..\EssenceMvp.Infrastructure\EssenceMvp.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

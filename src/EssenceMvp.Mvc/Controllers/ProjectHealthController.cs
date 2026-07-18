@@ -1,8 +1,7 @@
-﻿using EssenceMvp.Mvc.Application.Services;
-using EssenceMvp.Mvc.Infrastructure;
+using EssenceMvp.Application.Abstractions;
+using EssenceMvp.Application.Services;
 using EssenceMvp.Mvc.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EssenceMvp.Mvc.Controllers;
 
@@ -10,12 +9,12 @@ namespace EssenceMvp.Mvc.Controllers;
 public class ProjectHealthController : Controller
 {
     private readonly IHealthCalculationService _healthCalcService;
-    private readonly EssenceDbContext _db;
+    private readonly IProjectRepository _projects;
 
-    public ProjectHealthController(IHealthCalculationService healthCalcService, EssenceDbContext db)
+    public ProjectHealthController(IHealthCalculationService healthCalcService, IProjectRepository projects)
     {
         _healthCalcService = healthCalcService;
-        _db = db;
+        _projects = projects;
     }
 
     // GET /evaluation/health/{projectId}
@@ -23,9 +22,7 @@ public class ProjectHealthController : Controller
     [HttpGet("{projectId}")]
     public async Task<IActionResult> Get(int projectId)
     {
-        var project = await _db.Projects
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == projectId);
+        var project = await _projects.GetByIdAsync(projectId);
 
         if (project == null) return NotFound();
 

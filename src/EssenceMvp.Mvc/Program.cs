@@ -1,20 +1,26 @@
-using EssenceMvp.Mvc.Application.Services;
-using EssenceMvp.Mvc.Infrastructure;
-using EssenceMvp.Mvc.Infrastructure.Entities;
+using EssenceMvp.Application;
+using EssenceMvp.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-dataSourceBuilder.MapEnum<HealthStatus>("health_status");
-var dataSource = dataSourceBuilder.Build();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendDev", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
-builder.Services.AddDbContext<EssenceDbContext>(options => options.UseNpgsql(dataSource));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(connectionString);
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -27,14 +33,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<IAlphaService, AlphaService>();
-builder.Services.AddScoped<IHealthService, HealthService>();
-builder.Services.AddScoped<IAlphaEvaluationService, AlphaEvaluationService>();
-builder.Services.AddScoped<IHealthCalculationService, HealthCalculationService>();
-builder.Services.AddScoped<IProjectDetailComposerService, ProjectDetailComposerService>();
-builder.Services.AddScoped<ISnapshotService, SnapshotService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -46,6 +44,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("FrontendDev");
 app.UseAuthentication();
 app.UseAuthorization();
 
