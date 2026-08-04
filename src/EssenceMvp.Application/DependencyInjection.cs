@@ -8,6 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ISessionTokenService, SessionTokenService>();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IAlphaService, AlphaService>();
         services.AddScoped<IHealthService, HealthService>();

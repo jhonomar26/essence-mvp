@@ -7,9 +7,19 @@ namespace EssenceMvp.Application.Services;
 public class AuthService : IAuthService
 {
     private readonly IAppUserRepository _appUsers;
+    private readonly IUserSessionRepository _sessions;
+    private readonly ISessionTokenService _tokenService;
     private readonly PasswordHasher<AppUser> _hasher = new();
 
-    public AuthService(IAppUserRepository appUsers) => _appUsers = appUsers;
+    public AuthService(
+        IAppUserRepository appUsers,
+        IUserSessionRepository sessions,
+        ISessionTokenService tokenService)
+    {
+        _appUsers = appUsers;
+        _sessions = sessions;
+        _tokenService = tokenService;
+    }
 
     public async Task<AppUser?> AuthenticateAsync(string email, string password)
     {
@@ -33,5 +43,21 @@ public class AuthService : IAuthService
         user.PasswordHash = _hasher.HashPassword(user, password);
         user = await _appUsers.CreateAsync(user);
         return (user, null);
+    }
+
+    public async Task<(AppUser user, string token)> CreateSessionAsync(AppUser user)
+    {
+        var rawToken = _tokenService.GenerateToken();
+        var hash = _tokenService.Hash(rawToken);
+
+        await _sessions.CreateAsync(new UserSession
+        {
+            AppUserId = user.Id,
+            RefreshTokenHash = hash,
+            ExpiresAt = DateTime.UtcNow.AddHours(8),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        return (user, rawToken);
     }
 }

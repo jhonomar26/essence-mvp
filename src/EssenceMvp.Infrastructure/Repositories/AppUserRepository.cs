@@ -14,6 +14,9 @@ public class AppUserRepository : IAppUserRepository
     public Task<AppUser?> GetByEmailAsync(string email) =>
         _db.AppUsers.FirstOrDefaultAsync(u => u.Email == email);
 
+    public Task<AppUser?> GetByIdAsync(int id) =>
+        _db.AppUsers.FirstOrDefaultAsync(u => u.Id == id);
+
     public Task<bool> ExistsByEmailAsync(string email) =>
         _db.AppUsers.AnyAsync(u => u.Email == email);
 

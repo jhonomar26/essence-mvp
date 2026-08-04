@@ -47,7 +47,7 @@ CREATE TABLE app_user
     display_name  VARCHAR(100),
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
-select * from user_session;
+
 CREATE TABLE user_session
 (
     id                     SERIAL PRIMARY KEY,

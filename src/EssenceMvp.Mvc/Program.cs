@@ -1,6 +1,7 @@
 using EssenceMvp.Application;
 using EssenceMvp.Infrastructure;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using EssenceMvp.Mvc.Auth;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +13,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
     });
 });
 
@@ -22,15 +22,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(connectionString);
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/Login";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
-        options.SlidingExpiration = true;
-    });
+builder.Services.AddAuthentication("SessionToken")
+    .AddScheme<AuthenticationSchemeOptions, SessionTokenAuthenticationHandler>("SessionToken", null);
 
 builder.Services.AddAuthorization();
 var app = builder.Build();
