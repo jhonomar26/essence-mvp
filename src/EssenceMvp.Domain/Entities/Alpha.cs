@@ -1,5 +1,5 @@
 namespace EssenceMvp.Domain.Entities;
-
+//Representar las entidades que existen y las relaciones entre ellas 
 public class Alpha
 {
     public int Id { get; set; }

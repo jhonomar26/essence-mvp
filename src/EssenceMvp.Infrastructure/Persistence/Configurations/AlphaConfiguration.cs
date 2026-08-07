@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EssenceMvp.Infrastructure.Persistence.Configurations;
-
+/// Define cómo la entidad Alpha del Domain
+/// se mapea a la tabla y columnas de la base de datos mediante Entity Framework Core.
 public class AlphaConfiguration : IEntityTypeConfiguration<Alpha>
 {
     public void Configure(EntityTypeBuilder<Alpha> e)

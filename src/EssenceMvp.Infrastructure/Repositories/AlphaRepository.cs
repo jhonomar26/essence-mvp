@@ -4,7 +4,9 @@ using EssenceMvp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace EssenceMvp.Infrastructure.Repositories;
-
+/// <summary>
+/// Define mediante entity framework la implementacion que se definio en aplicacion
+/// </summary>
 public class AlphaRepository : IAlphaRepository
 {
     private readonly EssenceDbContext _db;
