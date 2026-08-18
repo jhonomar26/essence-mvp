@@ -7,4 +7,6 @@ public interface IUserSessionRepository
     Task<UserSession> CreateAsync(UserSession session);
     Task<UserSession?> GetByTokenHashAsync(string tokenHash);
     Task RevokeAsync(UserSession session);
+    Task MarkRotatedAsync(UserSession session, string newTokenHash);
+    Task RevokeAllActiveForUserAsync(int appUserId);
 }

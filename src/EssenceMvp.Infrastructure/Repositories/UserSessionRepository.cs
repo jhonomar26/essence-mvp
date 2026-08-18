@@ -28,4 +28,29 @@ public class UserSessionRepository : IUserSessionRepository
         session.RevokedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
+    /// <summary>
+    /// Marks the current session as revoked and records the hash of the new token that replaces it.
+    /// </summary>
+    public async Task MarkRotatedAsync(
+        UserSession session,
+        string newTokenHash)
+    {
+        session.RevokedAt = DateTime.UtcNow;
+        session.ReplacedByTokenHash = newTokenHash;
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task RevokeAllActiveForUserAsync(int appUserId)
+    {
+        var sesiones = await _db.UserSessions
+            .Where(x => x.AppUserId == appUserId && x.RevokedAt == null)
+            .ToListAsync();
+        foreach (var sesion in sesiones)
+        {
+            sesion.RevokedAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+    }
 }
