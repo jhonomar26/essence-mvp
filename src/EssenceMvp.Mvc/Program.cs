@@ -1,11 +1,22 @@
 using EssenceMvp.Application;
 using EssenceMvp.Infrastructure;
 using EssenceMvp.Mvc.Auth;
+using EssenceMvp.Mvc.Filters;
+using EssenceMvp.Mvc.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FluentValidationActionFilter>();
+});
+builder.Services.AddValidatorsFromAssemblyContaining<EvaluateChecklistViewModelValidator>();
 
 builder.Services.AddCors(options =>
 {

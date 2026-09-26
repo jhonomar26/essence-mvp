@@ -1,4 +1,6 @@
 using EssenceMvp.Application.Services;
+using EssenceMvp.Application.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IHealthCalculationService, HealthCalculationService>();
         services.AddScoped<IProjectDetailComposerService, ProjectDetailComposerService>();
         services.AddScoped<ISnapshotService, SnapshotService>();
+        services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
         return services;
     }
