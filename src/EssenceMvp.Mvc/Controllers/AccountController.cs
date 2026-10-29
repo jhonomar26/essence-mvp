@@ -2,7 +2,6 @@ using System.Security.Claims;
 using EssenceMvp.Application.Abstractions;
 using EssenceMvp.Application.Dtos;
 using EssenceMvp.Application.Services;
-using EssenceMvp.Application.Validators;
 using EssenceMvp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,12 +35,6 @@ public class AccountController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var validator = new LoginRequestValidator();
-        var result = await validator.ValidateAsync(request);
-
-        if (!result.IsValid)
-            return BadRequest(result.Errors);
-
         var user = await _authService.AuthenticateAsync(
             request.Email,
             request.Password
