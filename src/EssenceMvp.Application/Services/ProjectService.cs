@@ -1,5 +1,6 @@
 using EssenceMvp.Application.Abstractions;
 using EssenceMvp.Application.Dtos;
+using EssenceMvp.Application.Exceptions;
 using EssenceMvp.Domain.Entities;
 
 namespace EssenceMvp.Application.Services;
@@ -21,6 +22,12 @@ public class ProjectService : IProjectService
         _alphas = alphas;
         _projectAlphaStatuses = projectAlphaStatuses;
         _checklistResponses = checklistResponses;
+    }
+
+    public async Task EnsureOwnedAsync(int projectId, int userId)
+    {
+        if (await _projects.GetByIdForUserAsync(projectId, userId) == null)
+            throw new NotFoundException("Project not found");
     }
 
     public Task<List<Project>> GetUserProjectsAsync(int userId) =>

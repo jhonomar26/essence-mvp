@@ -1,30 +1,32 @@
-using EssenceMvp.Application.Abstractions;
+using System.Security.Claims;
 using EssenceMvp.Application.Services;
 using EssenceMvp.Mvc.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EssenceMvp.Mvc.Controllers;
 
+[Authorize]
 [Route("evaluation/health")]
 public class ProjectHealthController : Controller
 {
     private readonly IHealthCalculationService _healthCalcService;
-    private readonly IProjectRepository _projects;
+    private readonly IProjectService _projectService;
 
-    public ProjectHealthController(IHealthCalculationService healthCalcService, IProjectRepository projects)
+    public ProjectHealthController(IHealthCalculationService healthCalcService, IProjectService projectService)
     {
         _healthCalcService = healthCalcService;
-        _projects = projects;
+        _projectService = projectService;
     }
+
+    private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     // GET /evaluation/health/{projectId}
     // Retorna: SEMAT Essence health score + alpha progress details
     [HttpGet("{projectId}")]
     public async Task<IActionResult> Get(int projectId)
     {
-        var project = await _projects.GetByIdAsync(projectId);
-
-        if (project == null) return NotFound();
+        await _projectService.EnsureOwnedAsync(projectId, UserId);
 
         var healthScore = await _healthCalcService.CalculateProjectHealthAsync(projectId);
 

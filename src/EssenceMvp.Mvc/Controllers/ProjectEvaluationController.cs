@@ -3,8 +3,11 @@ namespace EssenceMvp.Mvc.Controllers;
 using EssenceMvp.Application.Abstractions;
 using EssenceMvp.Application.Services;
 using EssenceMvp.Mvc.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+[Authorize]
 [Route("evaluation/alpha")]
 public class AlphaEvaluationController : Controller
 {
@@ -19,9 +22,13 @@ public class AlphaEvaluationController : Controller
         _projectAlphaStatuses = projectAlphaStatuses;
     }
 
+    private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
     [HttpPost]
     public async Task<IActionResult> Evaluate([FromBody] EvaluateChecklistViewModel model)
     {
+        await _projectService.EnsureOwnedAsync(model.ProjectId, UserId);
+
         // Paso 1: Persiste respuestas de checklist (upsert por StateChecklistId)
         var responses = model.Answers.Select(a => (a.StateChecklistId, a.IsAchieved, a.Notes)).ToList();
         await _projectService.SaveChecklistResponsesAsync(model.ProjectId, responses);

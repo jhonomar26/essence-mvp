@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Application", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Infrastructure", "src\EssenceMvp.Infrastructure\EssenceMvp.Infrastructure.csproj", "{AAAA9439-1B75-4655-B08C-D6D5AE0E700E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A3611190-43A4-403F-8AAE-EE19FD28A2E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssenceMvp.Tests.Integration", "tests\EssenceMvp.Tests.Integration\EssenceMvp.Tests.Integration.csproj", "{1B985ABF-86D4-4A5C-8F49-7818709BF2D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,11 +42,16 @@ Global
 		{AAAA9439-1B75-4655-B08C-D6D5AE0E700E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAAA9439-1B75-4655-B08C-D6D5AE0E700E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAAA9439-1B75-4655-B08C-D6D5AE0E700E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B985ABF-86D4-4A5C-8F49-7818709BF2D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B985ABF-86D4-4A5C-8F49-7818709BF2D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B985ABF-86D4-4A5C-8F49-7818709BF2D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B985ABF-86D4-4A5C-8F49-7818709BF2D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{11060717-F1FF-426B-A932-2F1D6128D61A} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
 		{F9A2E63A-B7C0-4E9A-8C7F-328402B3F157} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
 		{C9AD67C3-B7E1-4C92-907A-FC0AC796DEB8} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
 		{AAAA9439-1B75-4655-B08C-D6D5AE0E700E} = {2347EF7E-7F11-4BE6-B9DE-6D56EEE2A84E}
+		{1B985ABF-86D4-4A5C-8F49-7818709BF2D2} = {A3611190-43A4-403F-8AAE-EE19FD28A2E2}
 	EndGlobalSection
 EndGlobal

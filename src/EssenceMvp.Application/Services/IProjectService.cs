@@ -6,6 +6,7 @@ namespace EssenceMvp.Application.Services;
 public interface IProjectService
 {
     Task<List<Project>> GetUserProjectsAsync(int userId);
+    Task EnsureOwnedAsync(int projectId, int userId);
     Task<Project> CreateProjectAsync(int userId, string name, string? description, string? phase);
     Task<Project?> GetProjectDetailAsync(int projectId, int userId);
     Task<bool> DeleteProjectAsync(int projectId, int userId);
