@@ -37,11 +37,14 @@ builder.Services.AddAuthentication("SessionToken")
     .AddScheme<AuthenticationSchemeOptions, SessionTokenAuthenticationHandler>("SessionToken", null);
 
 builder.Services.AddAuthorization();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<EssenceMvp.Mvc.Errors.ApiExceptionHandler>();
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/error");
     app.UseHsts();
 }
 
@@ -54,3 +57,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

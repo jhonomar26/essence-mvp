@@ -20,48 +20,17 @@ public class ProjectSnapshotController : ControllerBase
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpPost("")]
-    public async Task<IActionResult> Create(int projectId)
-    {
-        try
-        {
-            var snapshot = await _snapshotService.CreateSnapshotAsync(projectId, UserId);
-            return Ok(snapshot);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-    }
+    public async Task<IActionResult> Create(int projectId) =>
+        Ok(await _snapshotService.CreateSnapshotAsync(projectId, UserId));
 
     [HttpGet("")]
-    public async Task<IActionResult> GetHistory(int projectId)
-    {
-        try
-        {
-            var history = await _snapshotService.GetHistoryAsync(projectId, UserId);
-            return Ok(history);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-    }
+    public async Task<IActionResult> GetHistory(int projectId) =>
+        Ok(await _snapshotService.GetHistoryAsync(projectId, UserId));
 
     [HttpDelete("{snapshotId}")]
     public async Task<IActionResult> Delete(int projectId, int snapshotId)
     {
-        try
-        {
-            await _snapshotService.DeleteSnapshotAsync(snapshotId, projectId, UserId);
-            return Ok();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _snapshotService.DeleteSnapshotAsync(snapshotId, projectId, UserId);
+        return Ok();
     }
 }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using EssenceMvp.Application.Abstractions;
 using EssenceMvp.Application.Dtos;
+using EssenceMvp.Application.Exceptions;
 using EssenceMvp.Domain.Entities;
 using EssenceMvp.Domain.Enums;
 
@@ -24,7 +25,7 @@ public class SnapshotService : ISnapshotService
         var project = await _projects.GetByIdForUserAsync(projectId, userId);
 
         if (project == null)
-            throw new UnauthorizedAccessException("Project not found or access denied");
+            throw new NotFoundException("Project not found");
 
         var healthScore = await _healthCalcService.CalculateProjectHealthAsync(projectId);
 
@@ -81,7 +82,7 @@ public class SnapshotService : ISnapshotService
         var project = await _projects.GetByIdForUserAsync(projectId, userId);
 
         if (project == null)
-            throw new UnauthorizedAccessException("Project not found or access denied");
+            throw new NotFoundException("Project not found");
 
         var reports = await _healthReports.GetRecentByProjectIdAsync(projectId, 10);
 
@@ -126,12 +127,12 @@ public class SnapshotService : ISnapshotService
         var project = await _projects.GetByIdForUserAsync(projectId, userId);
 
         if (project == null)
-            throw new UnauthorizedAccessException("Project not found or access denied");
+            throw new NotFoundException("Project not found");
 
         var snapshot = await _healthReports.GetAsync(snapshotId, projectId);
 
         if (snapshot == null)
-            throw new InvalidOperationException("Snapshot not found");
+            throw new NotFoundException("Snapshot not found");
 
         await _healthReports.DeleteAsync(snapshot);
     }
