@@ -8,8 +8,13 @@ namespace EssenceMvp.Mvc.Errors;
 public class ApiExceptionHandler : IExceptionHandler
 {
     private readonly IProblemDetailsService _problemDetails;
+    private readonly ILogger<ApiExceptionHandler> _logger;
 
-    public ApiExceptionHandler(IProblemDetailsService problemDetails) => _problemDetails = problemDetails;
+    public ApiExceptionHandler(IProblemDetailsService problemDetails, ILogger<ApiExceptionHandler> logger)
+    {
+        _problemDetails = problemDetails;
+        _logger = logger;
+    }
 
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken ct)
     {
@@ -18,6 +23,10 @@ public class ApiExceptionHandler : IExceptionHandler
             : StatusCodes.Status500InternalServerError;
 
         context.Response.StatusCode = status;
+
+        // Desde ASP.NET Core 10, devolver true suprime el log del middleware: se registra aquí.
+        if (status == StatusCodes.Status500InternalServerError)
+            _logger.LogError(exception, "Unhandled exception while processing {Method} {Path}", context.Request.Method, context.Request.Path);
 
         return await _problemDetails.TryWriteAsync(new ProblemDetailsContext
         {
