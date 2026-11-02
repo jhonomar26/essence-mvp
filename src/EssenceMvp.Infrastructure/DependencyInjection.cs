@@ -16,7 +16,7 @@ public static class DependencyInjection
         dataSourceBuilder.MapEnum<HealthStatus>("health_status");
         var dataSource = dataSourceBuilder.Build();
 
-        services.AddDbContext<EssenceDbContext>(options => options.UseNpgsql(dataSource));
+        services.AddDbContext<EssenceDbContext>(options => options.UseNpgsql(dataSource, npgsql => npgsql.MapEnum<HealthStatus>("health_status")));
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IAlphaRepository, AlphaRepository>();
