@@ -14,13 +14,22 @@ public class EssenceWebFactory : WebApplicationFactory<Program>
 {
     private readonly string _dbName = Guid.NewGuid().ToString();
 
+    // false: usa la base configurada (PostgreSQL real) en vez de la base en memoria.
+    protected virtual bool UseInMemoryDatabase => true;
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+        if (!UseInMemoryDatabase) return;
+
         builder.ConfigureServices(services =>
         {
-            var options = services.Single(d => d.ServiceType == typeof(DbContextOptions<EssenceDbContext>));
-            services.Remove(options);
+            // Desde EF 9, AddDbContext también registra IDbContextOptionsConfiguration<T>: hay que quitar ambos.
+            var options = services.Where(d => d.ServiceType == typeof(DbContextOptions<EssenceDbContext>)
+                || (d.ServiceType.IsGenericType
+                    && d.ServiceType.GetGenericTypeDefinition().Name.StartsWith("IDbContextOptionsConfiguration")
+                    && d.ServiceType.GenericTypeArguments[0] == typeof(EssenceDbContext))).ToList();
+            foreach (var d in options) services.Remove(d);
             services.AddDbContext<EssenceDbContext>(o => o.UseInMemoryDatabase(_dbName));
         });
     }
