@@ -24,20 +24,21 @@ public class ApiExceptionHandler : IExceptionHandler
 
         context.Response.StatusCode = status;
 
-        // Desde ASP.NET Core 10, devolver true suprime el log del middleware: se registra aquí.
-        if (status == StatusCodes.Status500InternalServerError)
-            _logger.LogError(exception, "Unhandled exception while processing {Method} {Path}", context.Request.Method, context.Request.Path);
-
-        return await _problemDetails.TryWriteAsync(new ProblemDetailsContext
+        var written = await _problemDetails.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = context,
             Exception = exception,
             ProblemDetails = new ProblemDetails
             {
                 Status = status,
-                // El mensaje interno solo se expone para "no encontrado"; un 500 va genérico.
                 Title = status == StatusCodes.Status404NotFound ? exception.Message : "An unexpected error occurred."
             }
         });
+
+   
+        if (written && status >= StatusCodes.Status500InternalServerError)
+            _logger.LogError(exception, "Unhandled exception while processing {Method} {Path}", context.Request.Method, context.Request.Path);
+
+        return written;
     }
 }
