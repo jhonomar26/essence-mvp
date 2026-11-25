@@ -1,0 +1,8 @@
+{
+  "name": "essence-mvp",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "dev",
+  "forwardPorts": [5070, 5173]
+}

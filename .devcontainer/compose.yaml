@@ -1,0 +1,35 @@
+name: essence-mvp-dev
+
+services:
+  app:
+    build: .
+    command: sleep infinity
+    userns_mode: keep-id
+    user: "1000:1000"
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+      - claude-home:/home/dev/.claude
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5070
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=essence-mvp-17-07-2026;Username=postgres;Password=postgres
+    ports:
+      - "127.0.0.1:5070:5070"
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - db
+
+  db:
+    image: docker.io/library/postgres:17
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: essence-mvp-17-07-2026
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../db/essence_mvp_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+
+volumes:
+  pgdata:
+  claude-home:

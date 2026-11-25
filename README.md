@@ -73,6 +73,10 @@ Host=localhost;Port=5432;Database=essence_mvp-<date>;Username=postgres;Password=
 
 ## Levantar Localmente
 
+> Opción recomendada: entorno aislado con Podman (.NET, Node y Postgres ya configurados). Ver [docs/guides/entorno-devcontainer.md](docs/guides/entorno-devcontainer.md).
+
+Manual:
+
 ```bash
 # 1. PostgreSQL (asegúrate que existe la DB con schema)
 psql -U postgres -d essence_mvp-<date> -f db/essence_mvp_schema.sql
