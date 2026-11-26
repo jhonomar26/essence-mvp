@@ -1,0 +1,12 @@
+# Host-specific mounts. Copy to compose.override.yaml (ignored by git) and adjust paths.
+# podman-compose loads compose.override.yaml automatically when no -f is given.
+services:
+  app:
+    environment:
+      GENTLE_AI_ENGRAM_BIN: /usr/local/bin/engram
+    volumes:
+      # Same engram and gentle-ai versions as the host (static binaries), read-only.
+      - ${HOME}/.local/bin/engram:/usr/local/bin/engram:ro
+      - ${HOME}/.local/bin/gentle-ai:/usr/local/bin/gentle-ai:ro
+      # Notes vault, same absolute path as on the host so references resolve. Writable.
+      - ${HOME}/Documentos/Obsidian/DOCUMENTACION-ESSENCE:${HOME}/Documentos/Obsidian/DOCUMENTACION-ESSENCE

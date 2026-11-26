@@ -5,3 +5,5 @@ riderModule.iml
 /_ReSharper.Caches/
 .vs/
 *.csproj.user
+# Host-specific compose mounts
+.devcontainer/compose.override.yaml

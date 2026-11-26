@@ -1,5 +1,8 @@
 name: essence-mvp-dev
 
+# Portable: nothing here depends on the host's home directory.
+# Host-specific mounts (tools, notes) go in compose.override.yaml, which is not committed.
+# See compose.override.example.yaml.
 services:
   app:
     build: .
@@ -9,8 +12,12 @@ services:
     working_dir: /workspace
     volumes:
       - ..:/workspace
-      - claude-home:/home/dev/.claude
+      - claude-home:/home/dev/.claude    # login, settings, skills, hooks of this container
+      - engram-data:/home/dev/.engram    # memory of this container
     environment:
+      CLAUDE_CONFIG_DIR: /home/dev/.claude   # keeps .claude.json inside the claude-home volume
+      ENGRAM_DATA_DIR: /home/dev/.engram
+      GENTLE_AI_HOME: /home/dev/.claude/.gentle-ai
       ASPNETCORE_URLS: http://0.0.0.0:5070
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=essence-mvp-17-07-2026;Username=postgres;Password=postgres
     ports:
@@ -33,3 +40,4 @@ services:
 volumes:
   pgdata:
   claude-home:
+  engram-data:
